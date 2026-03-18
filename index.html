@@ -3,265 +3,211 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FleetTMS — Transport Management</title>
+<title>FleetTMS — AXM Cargo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* LOGIN PAGE */
-  .login-page{position:fixed;inset:0;display:flex;z-index:1000;background:white;}
-  .login-left{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
-  .login-right{width:45%;background:linear-gradient(135deg,#1e40af 0%,#2563eb 50%,#7c3aed 100%);display:flex;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden;}
-  .login-right::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
-  .login-form-wrap{width:100%;max-width:380px;}
-  .login-tabs{display:flex;background:#f3f4f6;border-radius:10px;padding:4px;margin-bottom:28px;}
-  .login-tab{flex:1;padding:9px;text-align:center;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-muted);transition:all 0.2s;}
-  .login-tab.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
-  .login-title{font-size:26px;font-weight:700;margin-bottom:6px;letter-spacing:-0.5px;}
-  .login-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px;}
-  .login-field{margin-bottom:16px;}
-  .login-field label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
-  .login-field-inner{position:relative;display:flex;align-items:center;}
-  .login-field-inner svg{position:absolute;left:12px;width:16px;height:16px;color:var(--text-muted);}
-  .login-field input{width:100%;padding:11px 12px 11px 38px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#f8fafc;outline:none;transition:all 0.15s;}
-  .login-field input:focus{border-color:var(--blue);background:white;}
-  .login-field-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-  .login-field-row label{font-size:12px;font-weight:600;color:var(--text-muted);}
-  .login-forgot{font-size:12px;color:var(--blue);text-decoration:none;font-weight:500;}
-  .login-forgot:hover{text-decoration:underline;}
-  .eye-btn{position:absolute;right:12px;background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;}
-  .login-submit{width:100%;padding:13px;background:#111827;color:white;border:none;border-radius:9px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;}
-  .login-submit:hover{background:#1f2937;}
-  .login-submit:disabled{background:#9ca3af;cursor:not-allowed;}
-  .login-divider{text-align:center;color:var(--text-muted);font-size:12px;margin:20px 0;position:relative;}
-  .login-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);}
-  .login-divider span{background:white;padding:0 12px;position:relative;}
-  .login-error{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;}
-  .login-success{background:var(--green-light);color:var(--green);border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;}
-  /* RIGHT PANEL */
-  .login-right-content{position:relative;z-index:1;color:white;text-align:center;}
-  .login-right-icon{width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;backdrop-filter:blur(10px);}
-  .login-right-icon svg{width:36px;height:36px;fill:white;}
-  .login-right-title{font-size:28px;font-weight:700;margin-bottom:10px;line-height:1.3;}
-  .login-right-sub{font-size:14px;opacity:0.8;margin-bottom:32px;line-height:1.6;}
-  .login-right-features{display:flex;flex-direction:column;gap:12px;text-align:left;}
-  .login-feature{display:flex;align-items:center;gap:12px;font-size:13px;}
-  .login-feature-icon{width:32px;height:32px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
-  @media(max-width:768px){.login-right{display:none;}.login-left{padding:24px;}}
-</style>
-  :root {
-    --bg:#f4f5f7;--sidebar:#0f1117;--sidebar-hover:#1a1d27;--white:#ffffff;
-    --border:#e5e7eb;--text:#111827;--text-muted:#6b7280;
-    --blue:#2563eb;--blue-light:#eff6ff;--green:#16a34a;--green-light:#f0fdf4;
-    --orange:#ea580c;--orange-light:#fff7ed;--red:#dc2626;--red-light:#fef2f2;
-    --yellow:#d97706;--yellow-light:#fffbeb;--purple:#7c3aed;--purple-light:#f5f3ff;
-    --radius:10px;--shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;font-size:14px;}
-  .sidebar{width:220px;background:var(--sidebar);display:flex;flex-direction:column;height:100vh;flex-shrink:0;}
-  .sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid #1e2130;}
-  .logo-wrap{display:flex;align-items:center;gap:10px;}
-  .logo-icon{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;}
-  .logo-icon svg{width:18px;height:18px;fill:white;}
-  .logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:-0.3px;}
-  .logo-sub{font-size:10px;color:#6b7280;margin-top:1px;}
-  .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
-  .nav-section{margin-bottom:6px;}
-  .nav-label{font-size:10px;font-weight:600;color:#4b5563;text-transform:uppercase;letter-spacing:0.8px;padding:6px 8px 4px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;color:#9ca3af;font-size:13px;font-weight:500;transition:all 0.15s;margin-bottom:1px;}
-  .nav-item:hover{background:var(--sidebar-hover);color:white;}
-  .nav-item.active{background:var(--blue);color:white;}
-  .nav-item svg{width:16px;height:16px;flex-shrink:0;}
-  .sidebar-bottom{padding:12px 8px;border-top:1px solid #1e2130;}
-  .sidebar-bottom .nav-item{color:#6b7280;}
-  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-  .topbar{background:white;border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-  .topbar h1{font-size:16px;font-weight:600;}
-  .topbar-right{display:flex;align-items:center;gap:8px;}
-  .topbar-time{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;}
-  .btn{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
-  .btn-primary{background:var(--blue);color:white;}
-  .btn-primary:hover{background:#1d4ed8;}
-  .btn-secondary{background:white;color:var(--text);border:1px solid var(--border);}
-  .btn-secondary:hover{background:var(--bg);}
-  .content{flex:1;overflow-y:auto;padding:24px;}
-  .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-  .card{background:white;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--border);}
-  .card-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
-  .card-value{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
-  .card-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
-  .card-blue .card-value{color:var(--blue);}.card-green .card-value{color:var(--green);}
-  .card-orange .card-value{color:var(--orange);}.card-red .card-value{color:var(--red);}
-  .card-purple .card-value{color:var(--purple);}
-  .table-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
-  .table-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-  .table-header h2{font-size:14px;font-weight:600;}
-  .table-header-actions{display:flex;gap:8px;align-items:center;}
-  .search-input{padding:6px 12px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:220px;}
-  .search-input:focus{border-color:var(--blue);}
-  table{width:100%;border-collapse:collapse;}
-  th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;background:#f9fafb;border-bottom:1px solid var(--border);white-space:nowrap;}
-  td{padding:12px 16px;border-bottom:1px solid #f3f4f6;font-size:13px;}
-  tr:last-child td{border-bottom:none;}
-  tr:hover td{background:#f9fafb;}
-  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
-  .badge-green{background:var(--green-light);color:var(--green);}
-  .badge-blue{background:var(--blue-light);color:var(--blue);}
-  .badge-orange{background:var(--orange-light);color:var(--orange);}
-  .badge-red{background:var(--red-light);color:var(--red);}
-  .badge-yellow{background:var(--yellow-light);color:var(--yellow);}
-  .actions{display:flex;gap:6px;}
-  .action-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
-  .action-btn:hover{background:var(--bg);}
-  .action-btn svg{width:13px;height:13px;}
-  .action-btn.delete:hover{background:var(--red-light);border-color:var(--red);}
-  .action-btn.delete svg{color:var(--red);}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
-  .modal{background:white;border-radius:14px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
-  .modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-  .modal-header h3{font-size:16px;font-weight:600;}
-  .modal-close{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-  .modal-close:hover{background:var(--bg);}
-  .modal-body{padding:20px 24px;}
-  .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
-  .form-row.full{grid-template-columns:1fr;}
-  .form-row.three{grid-template-columns:1fr 1fr 1fr;}
-  .form-group{display:flex;flex-direction:column;gap:5px;}
-  .form-group label{font-size:12px;font-weight:600;color:var(--text-muted);}
-  .form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.15s;}
-  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);}
-  .form-group textarea{resize:vertical;min-height:70px;}
-  .empty-state{padding:60px 20px;text-align:center;color:var(--text-muted);}
-  .empty-state svg{width:40px;height:40px;margin:0 auto 12px;opacity:0.3;display:block;}
-  .empty-state p{font-size:13px;}
-  .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;}
-  .alert-red{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;}
-  .dash-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
-  .recent-list{display:flex;flex-direction:column;}
-  .recent-item{padding:12px 16px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;font-size:13px;}
-  .recent-item:last-child{border-bottom:none;}
-  .recent-item-left{display:flex;flex-direction:column;gap:2px;}
-  .recent-item-route{font-weight:500;}
-  .recent-item-meta{font-size:11px;color:var(--text-muted);}
-  .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text-muted);font-size:13px;gap:8px;}
-  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.6s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .profit-positive{color:var(--green);font-weight:600;font-family:'DM Mono',monospace;font-size:12px;}
-  .profit-negative{color:var(--red);font-weight:600;font-family:'DM Mono',monospace;font-size:12px;}
-  /* POI */
-  .poi-input-wrap{position:relative;}
-  .poi-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-  .poi-option{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f3f4f6;}
-  .poi-option:last-child{border-bottom:none;}
-  .poi-option:hover{background:var(--blue-light);}
-  .poi-option-name{font-weight:500;font-size:13px;}
-  .poi-option-meta{font-size:11px;color:var(--text-muted);}
-  .poi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
-  .poi-card{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px;transition:box-shadow 0.15s;}
-  .poi-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-  .poi-card-header{display:flex;align-items:flex-start;justify-content:space-between;}
-  .poi-card-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-  .poi-card-title{font-size:14px;font-weight:600;margin-bottom:3px;}
-  .poi-card-body{font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;}
-  @media(max-width:768px){
-    .sidebar{width:56px;}
-    .logo-text,.logo-sub,.nav-item span,.nav-label{display:none;}
-    .nav-item{justify-content:center;padding:10px;}
-    .cards-grid{grid-template-columns:1fr 1fr;}
-    .dash-grid{grid-template-columns:1fr;}
-  }
-  /* LOGIN */
-  .login-page{position:fixed;inset:0;display:flex;z-index:1000;background:white;}
-  .login-left{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
-  .login-right{width:45%;background:linear-gradient(135deg,#1e40af 0%,#2563eb 50%,#7c3aed 100%);display:flex;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden;}
-  .login-right::before{content:'';position:absolute;inset:0;opacity:0.4;background-image:radial-gradient(circle at 20% 50%,rgba(255,255,255,0.1) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,0.08) 0%,transparent 40%);}
-  .login-form-wrap{width:100%;max-width:380px;}
-  .login-tabs{display:flex;background:#f3f4f6;border-radius:10px;padding:4px;margin-bottom:28px;}
-  .login-tab{flex:1;padding:9px;text-align:center;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text-muted);transition:all 0.2s;}
-  .login-tab.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
-  .login-title{font-size:26px;font-weight:700;margin-bottom:6px;letter-spacing:-0.5px;}
-  .login-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px;}
-  .login-field{margin-bottom:16px;}
-  .login-field label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
-  .login-field-inner{position:relative;display:flex;align-items:center;}
-  .login-field-inner>svg{position:absolute;left:12px;width:16px;height:16px;color:var(--text-muted);pointer-events:none;}
-  .login-field input{width:100%;padding:11px 12px 11px 38px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#f8fafc;outline:none;transition:all 0.15s;}
-  .login-field input:focus{border-color:var(--blue);background:white;}
-  .login-field-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-  .login-field-row label{font-size:12px;font-weight:600;color:var(--text-muted);margin:0;}
-  .login-forgot{font-size:12px;color:var(--blue);text-decoration:none;font-weight:500;}
-  .eye-btn{position:absolute;right:12px;background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:4px;}
-  .login-submit{width:100%;padding:13px;background:#111827;color:white;border:none;border-radius:9px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;}
-  .login-submit:hover{background:#1f2937;}
-  .login-submit:disabled{background:#9ca3af;cursor:not-allowed;}
-  .login-divider{text-align:center;color:var(--text-muted);font-size:12px;margin:20px 0;position:relative;}
-  .login-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);}
-  .login-divider span{background:white;padding:0 12px;position:relative;}
-  .login-error{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;}
-  .login-success{background:var(--green-light);color:var(--green);border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;}
-  .login-right-content{position:relative;z-index:1;color:white;text-align:center;}
-  .login-right-icon{width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;backdrop-filter:blur(10px);}
-  .login-right-icon svg{width:36px;height:36px;fill:white;}
-  .login-right-title{font-size:28px;font-weight:700;margin-bottom:10px;line-height:1.3;}
-  .login-right-sub{font-size:14px;opacity:0.8;margin-bottom:32px;line-height:1.6;}
-  .login-right-features{display:flex;flex-direction:column;gap:12px;text-align:left;}
-  .login-feature{display:flex;align-items:center;gap:12px;font-size:13px;}
-  .login-feature-icon{width:32px;height:32px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
-  @media(max-width:768px){.login-right{display:none;}.login-left{padding:24px;}}
+:root {
+  --bg:#f4f5f7;--sidebar:#0f1117;--sidebar-hover:#1a1d27;--white:#ffffff;
+  --border:#e5e7eb;--text:#111827;--text-muted:#6b7280;
+  --blue:#2563eb;--blue-light:#eff6ff;--green:#16a34a;--green-light:#f0fdf4;
+  --orange:#ea580c;--orange-light:#fff7ed;--red:#dc2626;--red-light:#fef2f2;
+  --yellow:#d97706;--yellow-light:#fffbeb;--purple:#7c3aed;--purple-light:#f5f3ff;
+  --radius:10px;--shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;font-size:14px;}
+.sidebar{width:220px;background:var(--sidebar);display:flex;flex-direction:column;height:100vh;flex-shrink:0;}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid #1e2130;}
+.logo-wrap{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:18px;height:18px;fill:white;}
+.logo-text{font-size:15px;font-weight:700;color:white;letter-spacing:-0.3px;}
+.logo-sub{font-size:10px;color:#6b7280;margin-top:1px;}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+.nav-section{margin-bottom:6px;}
+.nav-label{font-size:10px;font-weight:600;color:#4b5563;text-transform:uppercase;letter-spacing:0.8px;padding:6px 8px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;color:#9ca3af;font-size:13px;font-weight:500;transition:all 0.15s;margin-bottom:1px;}
+.nav-item:hover{background:var(--sidebar-hover);color:white;}
+.nav-item.active{background:var(--blue);color:white;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.sidebar-bottom{padding:12px 8px;border-top:1px solid #1e2130;}
+.sidebar-bottom .nav-item{color:#6b7280;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:white;border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar h1{font-size:16px;font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.topbar-time{font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+.btn{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-primary{background:var(--blue);color:white;}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-secondary{background:white;color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--bg);}
+.content{flex:1;overflow-y:auto;padding:24px;}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.card{background:white;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.card-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.card-value{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
+.card-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.card-blue .card-value{color:var(--blue);}
+.card-green .card-value{color:var(--green);}
+.card-orange .card-value{color:var(--orange);}
+.card-red .card-value{color:var(--red);}
+.card-purple .card-value{color:var(--purple);}
+.table-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+.table-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.table-header h2{font-size:14px;font-weight:600;}
+.search-input{padding:6px 12px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:220px;}
+.search-input:focus{border-color:var(--blue);}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;background:#f9fafb;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:12px 16px;border-bottom:1px solid #f3f4f6;font-size:13px;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f9fafb;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-green{background:var(--green-light);color:var(--green);}
+.badge-blue{background:var(--blue-light);color:var(--blue);}
+.badge-orange{background:var(--orange-light);color:var(--orange);}
+.badge-red{background:var(--red-light);color:var(--red);}
+.badge-yellow{background:var(--yellow-light);color:var(--yellow);}
+.actions{display:flex;gap:6px;}
+.action-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.action-btn:hover{background:var(--bg);}
+.action-btn svg{width:13px;height:13px;}
+.action-btn.delete:hover{background:var(--red-light);border-color:var(--red);}
+.action-btn.delete svg{color:var(--red);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal{background:white;border-radius:14px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-header h3{font-size:16px;font-weight:600;}
+.modal-close{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:var(--bg);}
+.modal-body{padding:20px 24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-row.full{grid-template-columns:1fr;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-muted);}
+.form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border 0.15s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);}
+.form-group textarea{resize:vertical;min-height:70px;}
+.empty-state{padding:60px 20px;text-align:center;color:var(--text-muted);}
+.empty-state svg{width:40px;height:40px;margin:0 auto 12px;opacity:0.3;display:block;}
+.empty-state p{font-size:13px;}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;}
+.alert-red{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;}
+.dash-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+.recent-list{display:flex;flex-direction:column;}
+.recent-item{padding:12px 16px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+.recent-item:last-child{border-bottom:none;}
+.recent-item-left{display:flex;flex-direction:column;gap:2px;}
+.recent-item-route{font-weight:500;}
+.recent-item-meta{font-size:11px;color:var(--text-muted);}
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text-muted);font-size:13px;gap:8px;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.profit-positive{color:var(--green);font-weight:600;font-family:'DM Mono',monospace;font-size:12px;}
+.profit-negative{color:var(--red);font-weight:600;font-family:'DM Mono',monospace;font-size:12px;}
+.poi-input-wrap{position:relative;}
+.poi-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.poi-option{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f3f4f6;}
+.poi-option:last-child{border-bottom:none;}
+.poi-option:hover{background:var(--blue-light);}
+.poi-option-name{font-weight:500;font-size:13px;}
+.poi-option-meta{font-size:11px;color:var(--text-muted);}
+.poi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.poi-card{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px;transition:box-shadow 0.15s;}
+.poi-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.poi-card-header{display:flex;align-items:flex-start;justify-content:space-between;}
+.poi-card-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.poi-card-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+.poi-card-body{font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;}
+@media(max-width:768px){
+  .sidebar{width:56px;}
+  .logo-text,.logo-sub,.nav-item span,.nav-label{display:none;}
+  .nav-item{justify-content:center;padding:10px;}
+  .cards-grid{grid-template-columns:1fr 1fr;}
+  .dash-grid{grid-template-columns:1fr;}
+}
+.login-page{position:fixed;inset:0;z-index:9999;display:flex;background:white;}
+.login-left{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
+.login-right{width:45%;background:linear-gradient(135deg,#1e40af 0%,#2563eb 60%,#7c3aed 100%);display:flex;align-items:center;justify-content:center;padding:40px;}
+.login-form-wrap{width:100%;max-width:360px;}
+.login-title{font-size:26px;font-weight:700;margin-bottom:6px;letter-spacing:-0.5px;}
+.login-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px;}
+.login-field{margin-bottom:18px;}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
+.login-field-inner{position:relative;display:flex;align-items:center;}
+.login-field-inner svg{position:absolute;left:12px;width:16px;height:16px;color:var(--text-muted);pointer-events:none;}
+.login-field input{width:100%;padding:11px 40px 11px 38px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#f8fafc;outline:none;transition:all 0.15s;}
+.login-field input:focus{border-color:var(--blue);background:white;}
+.eye-btn{position:absolute;right:10px;background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;padding:4px;}
+.login-submit{width:100%;padding:13px;background:#111827;color:white;border:none;border-radius:9px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;margin-top:4px;}
+.login-submit:hover{background:#1f2937;}
+.login-error{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
+.login-right-content{color:white;text-align:center;}
+.login-right-icon{width:68px;height:68px;background:rgba(255,255,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+.login-right-icon svg{width:34px;height:34px;fill:white;}
+.login-right-title{font-size:26px;font-weight:700;margin-bottom:10px;line-height:1.3;}
+.login-right-sub{font-size:14px;opacity:0.8;margin-bottom:28px;line-height:1.6;}
+.login-feature{display:flex;align-items:center;gap:12px;font-size:13px;margin-bottom:12px;text-align:left;}
+.login-feature-icon{width:32px;height:32px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
+.login-change-pass{text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted);}
+.login-change-pass a{color:var(--blue);font-weight:500;text-decoration:none;}
+@media(max-width:768px){.login-right{display:none;}.login-left{padding:24px;}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
-<div class="login-page" id="loginPage" style="display:none">
+<div id="loginPage" class="login-page">
   <div class="login-left">
     <div class="login-form-wrap">
-      <div class="login-tabs">
-        <div class="login-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</div>
-        <div class="login-tab" id="tabSignUp" onclick="switchTab('signup')">Sign Up</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px">
+        <div style="width:36px;height:36px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:white"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <div><div style="font-size:15px;font-weight:700;letter-spacing:-0.3px">FleetTMS</div><div style="font-size:10px;color:var(--text-muted)">AXM Cargo</div></div>
       </div>
-      <div id="formSignIn">
+      <div id="loginError" class="login-error"></div>
+      <div id="viewSignin">
         <div class="login-title">Bine ai revenit</div>
-        <div class="login-sub">Introdu parola pentru a accesa FleetTMS</div>
-        <div class="login-error" id="signinError"></div>
+        <div class="login-sub">Introdu parola pentru a accesa aplicația</div>
         <div class="login-field">
           <label>Parolă</label>
           <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="signinPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
-            <button class="eye-btn" onclick="togglePass('signinPassword',this)" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="inputPass" placeholder="Parola ta" onkeydown="if(event.key==='Enter')doLogin()">
+            <button class="eye-btn" type="button" onclick="toggleEye()">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
         </div>
-        <button class="login-submit" id="signinBtn" onclick="doSignIn()">
-          <span>Intră în aplicație</span>
+        <button class="login-submit" onclick="doLogin()">
+          Intră în aplicație
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
-        <div style="text-align:center;margin-top:20px;font-size:11px;color:var(--text-muted)">🔒 FleetTMS — AXM Cargo</div>
+        <div class="login-change-pass">Prima accesare? <a href="#" onclick="showView('setup')">Setează parola</a></div>
       </div>
-      <div id="formSignUp" style="display:none">
+      <div id="viewSetup" style="display:none">
         <div class="login-title">Setează parola</div>
-        <div class="login-sub">Prima accesare — creează parola de admin</div>
-        <div class="login-error" id="signupError"></div>
-        <div class="login-success" id="signupSuccess"></div>
+        <div class="login-sub">Creează o parolă pentru contul tău de admin</div>
         <div class="login-field">
           <label>Parolă nouă (minim 6 caractere)</label>
           <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="signupPassword" placeholder="••••••••">
-            <button class="eye-btn" onclick="togglePass('signupPassword',this)" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="inputNewPass" placeholder="Parolă nouă">
           </div>
         </div>
         <div class="login-field">
           <label>Confirmă parola</label>
           <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="signupPassword2" placeholder="••••••••">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="inputConfPass" placeholder="Repetă parola">
           </div>
         </div>
-        <button class="login-submit" onclick="doSignUp()"><span>Salvează Parola</span></button>
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted)">Ai deja parola? <a href="#" onclick="switchTab('signin')" style="color:var(--blue);font-weight:600">Sign In</a></div>
+        <button class="login-submit" onclick="doSetup()">Salvează Parola</button>
+        <div class="login-change-pass">Ai deja o parolă? <a href="#" onclick="showView('signin')">Sign In</a></div>
       </div>
+      <div style="text-align:center;margin-top:24px;font-size:11px;color:var(--text-muted)">&#128274; FleetTMS &mdash; AXM Cargo SRL</div>
     </div>
   </div>
   <div class="login-right">
@@ -269,12 +215,10 @@
       <div class="login-right-icon"><svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
       <div class="login-right-title">FleetTMS<br>Transport Manager</div>
       <div class="login-right-sub">Gestionează întreaga flotă<br>dintr-un singur loc</div>
-      <div class="login-right-features">
-        <div class="login-feature"><div class="login-feature-icon">🚛</div><span>Evidență curse cu calcul automat profit</span></div>
-        <div class="login-feature"><div class="login-feature-icon">📋</div><span>Scadențe documente cu alertă automată</span></div>
-        <div class="login-feature"><div class="login-feature-icon">📍</div><span>Locații POI cu sugestii rapide</span></div>
-        <div class="login-feature"><div class="login-feature-icon">🔒</div><span>Date securizate în cloud</span></div>
-      </div>
+      <div class="login-feature"><div class="login-feature-icon">&#128665;</div><span>Evidență curse cu calcul automat profit</span></div>
+      <div class="login-feature"><div class="login-feature-icon">&#128203;</div><span>Scadențe documente cu alertă automată</span></div>
+      <div class="login-feature"><div class="login-feature-icon">&#128205;</div><span>Locații POI cu sugestii rapide</span></div>
+      <div class="login-feature"><div class="login-feature-icon">&#128274;</div><span>Date securizate în cloud</span></div>
     </div>
   </div>
 </div>
@@ -283,7 +227,7 @@
   <div class="sidebar-logo">
     <div class="logo-wrap">
       <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-      <div><div class="logo-text">FleetTMS</div><div class="logo-sub">Transport Manager</div></div>
+      <div><div class="logo-text">FleetTMS</div><div class="logo-sub">AXM Cargo</div></div>
     </div>
   </div>
   <nav class="sidebar-nav">
@@ -326,10 +270,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span style="font-size:11px">Andrei</span>
     </div>
-    <div class="nav-item" onclick="doLogout()" style="color:#ef4444;margin-top:4px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      <span style="font-size:11px">Logout</span>
-    </div>
   </div>
 </div>
 
@@ -367,85 +307,6 @@ const SUPABASE_KEY='sb_publishable_ufnBdXhXbPCDUIV6eUPG_A_T-teDiXN';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 let currentPage='dashboard',editingId=null,poiCache=[];
 
-// ===================== AUTH =====================
-// ===================== AUTH — parolă locală simplă =====================
-const AUTH_KEY = 'fleetTMS_auth';
-const PASS_KEY = 'fleetTMS_pass';
-
-function switchTab(tab){
-  document.getElementById('tabSignIn').classList.toggle('active',tab==='signin');
-  document.getElementById('tabSignUp').classList.toggle('active',tab==='signup');
-  document.getElementById('formSignIn').style.display=tab==='signin'?'block':'none';
-  document.getElementById('formSignUp').style.display=tab==='signup'?'block':'none';
-}
-
-function togglePass(id,btn){
-  const inp=document.getElementById(id);
-  inp.type=inp.type==='password'?'text':'password';
-}
-
-function hashPass(str){
-  // Simple hash pentru parola locală
-  let hash=0;
-  for(let i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;}
-  return hash.toString(36);
-}
-
-function doSignIn(){
-  const pass=document.getElementById('signinPassword').value;
-  const errEl=document.getElementById('signinError');
-  errEl.style.display='none';
-  if(!pass){errEl.textContent='Introdu parola.';errEl.style.display='block';return;}
-  const savedPass=localStorage.getItem(PASS_KEY);
-  if(!savedPass){
-    errEl.textContent='Nu ai setat o parolă. Mergi la "Setează parola".';
-    errEl.style.display='block';
-    return;
-  }
-  if(hashPass(pass)===savedPass){
-    localStorage.setItem(AUTH_KEY,'1');
-    showApp();
-    init();
-  } else {
-    errEl.textContent='Parolă incorectă.';
-    errEl.style.display='block';
-    document.getElementById('signinPassword').value='';
-  }
-}
-
-function doSignUp(){
-  const pass=document.getElementById('signupPassword').value;
-  const pass2=document.getElementById('signupPassword2').value;
-  const errEl=document.getElementById('signupError');
-  const sucEl=document.getElementById('signupSuccess');
-  errEl.style.display='none';sucEl.style.display='none';
-  if(!pass){errEl.textContent='Introdu o parolă.';errEl.style.display='block';return;}
-  if(pass.length<6){errEl.textContent='Parola trebuie să aibă minim 6 caractere.';errEl.style.display='block';return;}
-  if(pass!==pass2){errEl.textContent='Parolele nu coincid.';errEl.style.display='block';return;}
-  localStorage.setItem(PASS_KEY,hashPass(pass));
-  localStorage.setItem(AUTH_KEY,'1');
-  sucEl.textContent='Parolă salvată! Te loghezi automat...';
-  sucEl.style.display='block';
-  setTimeout(()=>{showApp();init();},1000);
-}
-
-function showApp(){
-  document.getElementById('loginPage').style.display='none';
-}
-
-function showLogin(){
-  document.getElementById('loginPage').style.display='flex';
-  // Dacă nu există parolă setată, arată tab-ul de creare parolă
-  if(!localStorage.getItem(PASS_KEY)){
-    switchTab('signup');
-  }
-}
-
-function doLogout(){
-  localStorage.removeItem(AUTH_KEY);
-  showLogin();
-}
-
 // CLOCK
 const tickClock=()=>document.getElementById('clock').textContent=new Date().toLocaleString('ro-RO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 tickClock();setInterval(tickClock,1000);
@@ -453,7 +314,7 @@ tickClock();setInterval(tickClock,1000);
 // NAV
 function showPage(page){
   currentPage=page;
-  document.querySelectorAll('.nav-item').forEach(i=>{i.classList.remove('active');if(i.getAttribute('onclick')?.includes(`'${page}'`))i.classList.add('active');});
+  document.querySelectorAll('.nav-item').forEach(i=>{i.classList.remove('active');if(i.getAttribute('onclick')?.includes("'"+page+"'"))i.classList.add('active');});
   const titles={dashboard:'Dashboard',curse:'Gestionare Curse',cheltuieli:'Cheltuieli',reparatii:'Reparații',documente:'Documente',flota:'Flotă',poi:'Locații POI'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   const addLabels={curse:'+ Cursă Nouă',cheltuieli:'+ Cheltuială',reparatii:'+ Reparație',documente:'+ Document',flota:'+ Vehicul',poi:'+ Locație POI'};
@@ -471,9 +332,14 @@ async function renderPage(page){
 
 async function loadPOICache(){const{data}=await sb.from('poi').select('*').order('nume');poiCache=data||[];}
 
-// ===================== DASHBOARD =====================
+// DASHBOARD
 async function renderDashboard(){
-  const[cr,ch,rr,dr]=await Promise.all([sb.from('curse').select('*').order('created_at',{ascending:false}),sb.from('cheltuieli').select('*'),sb.from('reparatii').select('*'),sb.from('documente').select('*')]);
+  const[cr,ch,rr,dr]=await Promise.all([
+    sb.from('curse').select('*').order('created_at',{ascending:false}),
+    sb.from('cheltuieli').select('*'),
+    sb.from('reparatii').select('*'),
+    sb.from('documente').select('*'),
+  ]);
   const curse=cr.data||[],chel=ch.data||[],rep=rr.data||[],doc=dr.data||[];
   const tv=curse.reduce((s,c)=>s+(parseFloat(c.venit)||0),0);
   const tc=chel.reduce((s,c)=>s+(parseFloat(c.suma)||0),0);
@@ -484,34 +350,35 @@ async function renderDashboard(){
   const soon=doc.filter(d=>{if(!d.data_expirare)return false;const diff=(new Date(d.data_expirare)-today)/86400000;return diff>=0&&diff<=30;});
   document.getElementById('content').innerHTML=`
     <div class="cards-grid">
-      <div class="card card-blue"><div class="card-label">Venit Total</div><div class="card-value">€${tv.toLocaleString('ro-RO')}</div><div class="card-sub">${curse.length} curse</div></div>
-      <div class="card card-green"><div class="card-label">Profit Net</div><div class="card-value">€${profit.toLocaleString('ro-RO')}</div><div class="card-sub">Venit - Cheltuieli - Reparații</div></div>
-      <div class="card card-orange"><div class="card-label">Cheltuieli Totale</div><div class="card-value">€${(tc+tr).toLocaleString('ro-RO')}</div><div class="card-sub">Inclusiv reparații</div></div>
+      <div class="card card-blue"><div class="card-label">Venit Total</div><div class="card-value">&#8364;${tv.toLocaleString('ro-RO')}</div><div class="card-sub">${curse.length} curse</div></div>
+      <div class="card card-green"><div class="card-label">Profit Net</div><div class="card-value">&#8364;${profit.toLocaleString('ro-RO')}</div><div class="card-sub">Venit - Cheltuieli - Reparații</div></div>
+      <div class="card card-orange"><div class="card-label">Cheltuieli Totale</div><div class="card-value">&#8364;${(tc+tr).toLocaleString('ro-RO')}</div><div class="card-sub">Inclusiv reparații</div></div>
       <div class="card ${expired.length>0?'card-red':'card-orange'}"><div class="card-label">Documente</div><div class="card-value">${expired.length>0?expired.length+' expirate':soon.length+' scadente'}</div><div class="card-sub">${expired.length>0?'Necesită atenție urgentă!':soon.length>0?'În 30 zile':'Totul în regulă ✓'}</div></div>
     </div>
-    ${expired.length>0?`<div class="alert alert-red" style="margin-bottom:16px">⚠️ Ai ${expired.length} document(e) expirat(e)! <a href="#" onclick="showPage('documente')" style="color:inherit;font-weight:600">Vezi documentele →</a></div>`:''}
+    ${expired.length>0?'<div class="alert alert-red">&#9888;&#65039; Ai '+expired.length+' document(e) expirat(e)! <a href="#" onclick="showPage(\'documente\')" style="color:inherit;font-weight:600">Vezi documentele &rarr;</a></div>':''}
     <div class="dash-grid">
       <div class="table-card">
-        <div class="table-header"><h2>Curse Recente</h2><button class="btn btn-secondary" onclick="showPage('curse')" style="font-size:12px;padding:5px 10px">Vezi toate →</button></div>
-        ${curse.length===0?`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><p>Nicio cursă înregistrată</p></div>`:`
-        <table><thead><tr><th>Rută</th><th>Camion</th><th>Șofer</th><th>Status</th><th>Venit</th></tr></thead><tbody>
-        ${curse.slice(0,5).map(c=>`<tr><td><strong>${c.origine||'—'}</strong> → ${c.destinatie||'—'}</td><td>${c.camion||'—'}</td><td>${c.sofer||'—'}</td><td><span class="badge badge-${statusColor(c.status)}">${c.status||'—'}</span></td><td class="profit-positive">€${parseFloat(c.venit||0).toLocaleString('ro-RO')}</td></tr>`).join('')}
-        </tbody></table>`}
+        <div class="table-header"><h2>Curse Recente</h2><button class="btn btn-secondary" onclick="showPage('curse')" style="font-size:12px;padding:5px 10px">Vezi toate &rarr;</button></div>
+        ${curse.length===0?'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><p>Nicio cursă înregistrată</p></div>':
+        '<table><thead><tr><th>Rută</th><th>Camion</th><th>Șofer</th><th>Status</th><th>Venit</th></tr></thead><tbody>'+
+        curse.slice(0,5).map(c=>'<tr><td><strong>'+( c.origine||'—')+'</strong> &rarr; '+(c.destinatie||'—')+'</td><td>'+(c.camion||'—')+'</td><td>'+(c.sofer||'—')+'</td><td><span class="badge badge-'+statusColor(c.status)+'">'+(c.status||'—')+'</span></td><td class="profit-positive">&#8364;'+parseFloat(c.venit||0).toLocaleString('ro-RO')+'</td></tr>').join('')+
+        '</tbody></table>'}
       </div>
       <div class="table-card">
         <div class="table-header"><h2>Scadențe Apropiate</h2></div>
-        ${soon.length===0&&expired.length===0?`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>Toate documentele valabile</p></div>`:`
-        <div class="recent-list">${[...expired,...soon].slice(0,6).map(d=>{
+        ${soon.length===0&&expired.length===0?'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>Toate documentele valabile</p></div>':
+        '<div class="recent-list">'+[...expired,...soon].slice(0,6).map(d=>{
           const diff=Math.round((new Date(d.data_expirare)-today)/86400000);
           const cls=diff<0?'badge-red':diff<=7?'badge-orange':'badge-yellow';
-          return`<div class="recent-item"><div class="recent-item-left"><div class="recent-item-route">${d.tip_document||'Document'}</div><div class="recent-item-meta">${d.entitate||'—'}</div></div><span class="badge ${cls}">${diff<0?`Expirat ${Math.abs(diff)}z`:`${diff} zile`}</span></div>`;
-        }).join('')}</div>`}
+          return '<div class="recent-item"><div class="recent-item-left"><div class="recent-item-route">'+(d.tip_document||'Document')+'</div><div class="recent-item-meta">'+(d.entitate||'—')+'</div></div><span class="badge '+cls+'">'+(diff<0?'Expirat '+Math.abs(diff)+'z':diff+' zile')+'</span></div>';
+        }).join('')+'</div>'}
       </div>
     </div>`;
 }
+
 function statusColor(s){return{Finalizată:'green','În Tranzit':'blue',Planificată:'yellow',Anulată:'red'}[s]||'blue';}
 
-// ===================== POI =====================
+// POI
 const POI_TYPES={'Client Încărcare':{icon:'🏭',color:'#2563eb',bg:'#eff6ff'},'Client Descărcare':{icon:'🏢',color:'#16a34a',bg:'#f0fdf4'},'Vamă':{icon:'🛂',color:'#d97706',bg:'#fffbeb'},'Parcare TIR':{icon:'🅿️',color:'#7c3aed',bg:'#f5f3ff'},'Service':{icon:'🔧',color:'#ea580c',bg:'#fff7ed'},'Alimentare':{icon:'⛽',color:'#0891b2',bg:'#ecfeff'},'Altele':{icon:'📍',color:'#6b7280',bg:'#f9fafb'}};
 
 async function renderPOI(){
@@ -520,172 +387,112 @@ async function renderPOI(){
   document.getElementById('content').innerHTML=`
     <div class="cards-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
       <div class="card card-purple"><div class="card-label">Total Locații</div><div class="card-value">${items.length}</div><div class="card-sub">POI salvate</div></div>
-      <div class="card"><div class="card-label">Clienți</div><div class="card-value">${items.filter(i=>i.tip?.includes('Client')).length}</div><div class="card-sub">Încărcare + Descărcare</div></div>
-      <div class="card"><div class="card-label">Alte Puncte</div><div class="card-value">${items.filter(i=>!i.tip?.includes('Client')).length}</div><div class="card-sub">Vame, Parcări, Service</div></div>
+      <div class="card"><div class="card-label">Clienți</div><div class="card-value">${items.filter(i=>i.tip&&i.tip.includes('Client')).length}</div><div class="card-sub">Încărcare + Descărcare</div></div>
+      <div class="card"><div class="card-label">Alte Puncte</div><div class="card-value">${items.filter(i=>!i.tip||!i.tip.includes('Client')).length}</div><div class="card-sub">Vame, Parcări, Service</div></div>
     </div>
-    <div style="margin-bottom:16px">
-      <input class="search-input" placeholder="Caută locație..." oninput="filterPOI(this.value)" style="width:280px">
-    </div>
-    ${items.length===0?`<div class="table-card"><div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <p>Nicio locație salvată. Apasă "+ Locație POI" pentru a adăuga.</p>
-    </div></div>`:`<div class="poi-grid" id="poiGrid">${items.map(p=>poiCard(p)).join('')}</div>`}`;
+    <div style="margin-bottom:16px"><input class="search-input" placeholder="Caută locație..." oninput="filterPOI(this.value)" style="width:280px"></div>
+    ${items.length===0?'<div class="table-card"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><p>Nicio locație. Apasă "+ Locație POI".</p></div></div>':
+    '<div class="poi-grid" id="poiGrid">'+items.map(p=>poiCard(p)).join('')+'</div>'}`;
 }
 
 function poiCard(p){
   const t=POI_TYPES[p.tip]||POI_TYPES['Altele'];
-  return`<div class="poi-card">
-    <div class="poi-card-header">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="poi-card-icon" style="background:${t.bg}">${t.icon}</div>
-        <div><div class="poi-card-title">${p.nume||'—'}</div><div style="margin-top:2px"><span class="badge" style="background:${t.bg};color:${t.color};font-size:10px">${p.tip||'—'}</span></div></div>
-      </div>
-      <div class="actions">
-        <button class="action-btn" onclick='editItem("poi",${JSON.stringify(p)})'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="action-btn delete" onclick="deleteItem('poi','${p.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-      </div>
-    </div>
-    <div class="poi-card-body">
-      ${p.adresa?`<span>📍 ${p.adresa}</span>`:''}
-      ${p.tara?`<span>🌍 ${p.tara}</span>`:''}
-      ${p.contact?`<span>📞 ${p.contact}</span>`:''}
-      ${p.note?`<span style="font-style:italic">💬 ${p.note}</span>`:''}
-    </div>
-  </div>`;
+  const data=JSON.stringify(p).replace(/'/g,'&#39;');
+  return '<div class="poi-card"><div class="poi-card-header"><div style="display:flex;align-items:center;gap:10px"><div class="poi-card-icon" style="background:'+t.bg+'">'+t.icon+'</div><div><div class="poi-card-title">'+(p.nume||'—')+'</div><div style="margin-top:2px"><span class="badge" style="background:'+t.bg+';color:'+t.color+';font-size:10px">'+(p.tip||'—')+'</span></div></div></div><div class="actions"><button class="action-btn" onclick=\'editItem("poi",'+data+')\'>'+editSVG()+'</button><button class="action-btn delete" onclick="deleteItem(\'poi\',\''+p.id+'\')">'+deleteSVG()+'</button></div></div><div class="poi-card-body">'+(p.adresa?'<span>📍 '+p.adresa+'</span>':'')+(p.tara?'<span>🌍 '+p.tara+'</span>':'')+(p.contact?'<span>📞 '+p.contact+'</span>':'')+(p.note?'<span style="font-style:italic">💬 '+p.note+'</span>':'')+'</div></div>';
 }
 
-function filterPOI(val){
-  const v=val.toLowerCase();
-  document.querySelectorAll('.poi-card').forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(v)?'':'none';});
-}
+function filterPOI(val){const v=val.toLowerCase();document.querySelectorAll('.poi-card').forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(v)?'':'none';});}
 
-// ===================== POI AUTOCOMPLETE =====================
+// POI AUTOCOMPLETE
 function showPOISuggestions(inputId,dropId,val){
   const drop=document.getElementById(dropId);
   if(!val||val.length<1){drop.style.display='none';return;}
-  const filtered=poiCache.filter(p=>p.nume?.toLowerCase().includes(val.toLowerCase())||p.adresa?.toLowerCase().includes(val.toLowerCase())||p.tara?.toLowerCase().includes(val.toLowerCase()));
+  const filtered=poiCache.filter(p=>(p.nume&&p.nume.toLowerCase().includes(val.toLowerCase()))||(p.adresa&&p.adresa.toLowerCase().includes(val.toLowerCase()))||(p.tara&&p.tara.toLowerCase().includes(val.toLowerCase())));
   if(filtered.length===0){drop.style.display='none';return;}
   drop.innerHTML=filtered.slice(0,8).map(p=>{
     const icon=(POI_TYPES[p.tip]||POI_TYPES['Altele']).icon;
     const meta=[p.adresa,p.tara,p.tip].filter(Boolean).join(' · ');
-    return`<div class="poi-option" onclick="selectPOI('${inputId}','${dropId}','${(p.nume||'').replace(/'/g,"\\'")}')">
-      <span style="font-size:18px">${icon}</span>
-      <div><div class="poi-option-name">${p.nume}</div><div class="poi-option-meta">${meta}</div></div>
-    </div>`;
+    const name=(p.nume||'').replace(/'/g,"\\'");
+    return '<div class="poi-option" onclick="selectPOI(\''+inputId+'\',\''+dropId+'\',\''+name+'\')"><span style="font-size:18px">'+icon+'</span><div><div class="poi-option-name">'+(p.nume||'')+'</div><div class="poi-option-meta">'+meta+'</div></div></div>';
   }).join('');
   drop.style.display='block';
 }
 
-function selectPOI(inputId,dropId,value){
-  document.getElementById(inputId).value=value;
-  document.getElementById(dropId).style.display='none';
-}
+function selectPOI(inputId,dropId,value){document.getElementById(inputId).value=value;document.getElementById(dropId).style.display='none';}
+document.addEventListener('click',e=>{document.querySelectorAll('.poi-dropdown').forEach(d=>{if(!d.parentElement||!d.parentElement.contains(e.target))d.style.display='none';});});
 
-document.addEventListener('click',e=>{
-  document.querySelectorAll('.poi-dropdown').forEach(d=>{if(!d.parentElement?.contains(e.target))d.style.display='none';});
-});
-
-// ===================== CURSE =====================
+// CURSE
 async function renderCurse(){
   await loadPOICache();
   const{data,error}=await sb.from('curse').select('*').order('created_at',{ascending:false});
   if(error){showError(error.message);return;}
   const curse=data||[];
-  document.getElementById('content').innerHTML=`
-    <div class="table-card">
-      <div class="table-header"><h2>Toate Cursele (${curse.length})</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,'curseTable')"></div>
-      ${curse.length===0?`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><p>Nicio cursă. Apasă "+ Cursă Nouă".</p></div>`:`
-      <table id="curseTable"><thead><tr><th>Data</th><th>Origine</th><th>Destinație</th><th>Camion</th><th>Remorcă</th><th>Șofer</th><th>Client</th><th>Status</th><th>Venit</th><th>Cost</th><th>Profit</th><th>Acțiuni</th></tr></thead><tbody>
-      ${curse.map(c=>{
-        const profit=(parseFloat(c.venit)||0)-(parseFloat(c.cost_total)||0);
-        return`<tr>
-          <td style="font-family:'DM Mono',monospace;font-size:12px">${formatDate(c.data_plecare)}</td>
-          <td><strong>${c.origine||'—'}</strong></td><td>${c.destinatie||'—'}</td>
-          <td>${c.camion||'—'}</td><td>${c.remorca||'—'}</td><td>${c.sofer||'—'}</td><td>${c.client||'—'}</td>
-          <td><span class="badge badge-${statusColor(c.status)}">${c.status||'—'}</span></td>
-          <td class="profit-positive">€${parseFloat(c.venit||0).toLocaleString('ro-RO')}</td>
-          <td style="color:var(--text-muted)">€${parseFloat(c.cost_total||0).toLocaleString('ro-RO')}</td>
-          <td class="${profit>=0?'profit-positive':'profit-negative'}">€${profit.toLocaleString('ro-RO')}</td>
-          <td><div class="actions">
-            <button class="action-btn" onclick='editItem("curse",${JSON.stringify(c)})' title="Editează"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-            <button class="action-btn delete" onclick="deleteItem('curse','${c.id}')" title="Șterge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-          </div></td>
-        </tr>`;
-      }).join('')}
-      </tbody></table>`}
-    </div>`;
+  document.getElementById('content').innerHTML='<div class="table-card"><div class="table-header"><h2>Toate Cursele ('+curse.length+')</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,\'curseTable\')"></div>'+
+  (curse.length===0?'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg><p>Nicio cursă. Apasă "+ Cursă Nouă".</p></div>':
+  '<table id="curseTable"><thead><tr><th>Data</th><th>Origine</th><th>Destinație</th><th>Camion</th><th>Remorcă</th><th>Șofer</th><th>Client</th><th>Status</th><th>Venit</th><th>Cost</th><th>Profit</th><th>Acțiuni</th></tr></thead><tbody>'+
+  curse.map(c=>{
+    const profit=(parseFloat(c.venit)||0)-(parseFloat(c.cost_total)||0);
+    const data=JSON.stringify(c).replace(/'/g,'&#39;');
+    return '<tr><td style="font-family:\'DM Mono\',monospace;font-size:12px">'+formatDate(c.data_plecare)+'</td><td><strong>'+(c.origine||'—')+'</strong></td><td>'+(c.destinatie||'—')+'</td><td>'+(c.camion||'—')+'</td><td>'+(c.remorca||'—')+'</td><td>'+(c.sofer||'—')+'</td><td>'+(c.client||'—')+'</td><td><span class="badge badge-'+statusColor(c.status)+'">'+(c.status||'—')+'</span></td><td class="profit-positive">&#8364;'+parseFloat(c.venit||0).toLocaleString('ro-RO')+'</td><td style="color:var(--text-muted)">&#8364;'+parseFloat(c.cost_total||0).toLocaleString('ro-RO')+'</td><td class="'+(profit>=0?'profit-positive':'profit-negative')+'">&#8364;'+profit.toLocaleString('ro-RO')+'</td><td><div class="actions"><button class="action-btn" onclick=\'editItem("curse",'+data+')\'>'+editSVG()+'</button><button class="action-btn delete" onclick="deleteItem(\'curse\',\''+c.id+'\')">'+deleteSVG()+'</button></div></td></tr>';
+  }).join('')+'</tbody></table>')+'</div>';
 }
 
-// ===================== CHELTUIELI =====================
+// CHELTUIELI
 async function renderCheltuieli(){
   const{data}=await sb.from('cheltuieli').select('*').order('data',{ascending:false});
   const items=data||[],total=items.reduce((s,i)=>s+(parseFloat(i.suma)||0),0);
-  document.getElementById('content').innerHTML=`
-    <div class="cards-grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="card card-blue"><div class="card-label">Total</div><div class="card-value">€${total.toLocaleString('ro-RO')}</div><div class="card-sub">${items.length} înregistrări</div></div>
-      <div class="card card-orange"><div class="card-label">Luna Aceasta</div><div class="card-value">€${items.filter(i=>{const d=new Date(i.data),n=new Date();return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();}).reduce((s,i)=>s+(parseFloat(i.suma)||0),0).toLocaleString('ro-RO')}</div><div class="card-sub">${new Date().toLocaleString('ro-RO',{month:'long',year:'numeric'})}</div></div>
-      <div class="card"><div class="card-label">Media / Lună</div><div class="card-value">€${items.length>0?Math.round(total/Math.max(1,new Set(items.map(i=>i.data?.slice(0,7))).size)).toLocaleString('ro-RO'):'0'}</div><div class="card-sub">Estimat</div></div>
-    </div>
-    <div class="table-card">
-      <div class="table-header"><h2>Toate Cheltuielile</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,'chelTable')"></div>
-      ${items.length===0?`<div class="empty-state"><p>Nicio cheltuială înregistrată.</p></div>`:`
-      <table id="chelTable"><thead><tr><th>Data</th><th>Camion</th><th>Tip</th><th>Descriere</th><th>Sumă</th><th>Acțiuni</th></tr></thead><tbody>
-      ${items.map(i=>`<tr><td style="font-family:'DM Mono',monospace;font-size:12px">${formatDate(i.data)}</td><td>${i.camion||'—'}</td><td><span class="badge badge-blue">${i.tip||'—'}</span></td><td>${i.descriere||'—'}</td><td class="profit-negative">€${parseFloat(i.suma||0).toLocaleString('ro-RO')}</td>
-      <td><div class="actions"><button class="action-btn" onclick='editItem("cheltuieli",${JSON.stringify(i)})'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="action-btn delete" onclick="deleteItem('cheltuieli','${i.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`).join('')}
-      </tbody></table>`}
-    </div>`;
+  const now=new Date();
+  const lunaAceasta=items.filter(i=>{const d=new Date(i.data);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,i)=>s+(parseFloat(i.suma)||0),0);
+  document.getElementById('content').innerHTML='<div class="cards-grid" style="grid-template-columns:repeat(3,1fr)"><div class="card card-blue"><div class="card-label">Total</div><div class="card-value">&#8364;'+total.toLocaleString('ro-RO')+'</div><div class="card-sub">'+items.length+' înregistrări</div></div><div class="card card-orange"><div class="card-label">Luna Aceasta</div><div class="card-value">&#8364;'+lunaAceasta.toLocaleString('ro-RO')+'</div><div class="card-sub">'+now.toLocaleString('ro-RO',{month:'long',year:'numeric'})+'</div></div><div class="card"><div class="card-label">Media / Lună</div><div class="card-value">&#8364;'+(items.length>0?Math.round(total/Math.max(1,new Set(items.map(i=>i.data&&i.data.slice(0,7))).size)).toLocaleString('ro-RO'):'0')+'</div><div class="card-sub">Estimat</div></div></div>'+
+  '<div class="table-card"><div class="table-header"><h2>Toate Cheltuielile</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,\'chelTable\')"></div>'+
+  (items.length===0?'<div class="empty-state"><p>Nicio cheltuială înregistrată.</p></div>':
+  '<table id="chelTable"><thead><tr><th>Data</th><th>Camion</th><th>Tip</th><th>Descriere</th><th>Sumă</th><th>Acțiuni</th></tr></thead><tbody>'+
+  items.map(i=>{const data=JSON.stringify(i).replace(/'/g,'&#39;');return '<tr><td style="font-family:\'DM Mono\',monospace;font-size:12px">'+formatDate(i.data)+'</td><td>'+(i.camion||'—')+'</td><td><span class="badge badge-blue">'+(i.tip||'—')+'</span></td><td>'+(i.descriere||'—')+'</td><td class="profit-negative">&#8364;'+parseFloat(i.suma||0).toLocaleString('ro-RO')+'</td><td><div class="actions"><button class="action-btn" onclick=\'editItem("cheltuieli",'+data+')\'>'+editSVG()+'</button><button class="action-btn delete" onclick="deleteItem(\'cheltuieli\',\''+i.id+'\')">'+deleteSVG()+'</button></div></td></tr>';}).join('')+
+  '</tbody></table>')+'</div>';
 }
 
-// ===================== REPARATII =====================
+// REPARATII
 async function renderReparatii(){
   const{data}=await sb.from('reparatii').select('*').order('data',{ascending:false});
   const items=data||[],total=items.reduce((s,i)=>s+(parseFloat(i.cost)||0),0);
-  document.getElementById('content').innerHTML=`
-    <div class="cards-grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="card card-red"><div class="card-label">Total</div><div class="card-value">€${total.toLocaleString('ro-RO')}</div><div class="card-sub">${items.length} intervenții</div></div>
-      <div class="card card-orange"><div class="card-label">Luna Aceasta</div><div class="card-value">€${items.filter(i=>{const d=new Date(i.data),n=new Date();return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();}).reduce((s,i)=>s+(parseFloat(i.cost)||0),0).toLocaleString('ro-RO')}</div><div class="card-sub">${new Date().toLocaleString('ro-RO',{month:'long',year:'numeric'})}</div></div>
-      <div class="card"><div class="card-label">Media / Intervenție</div><div class="card-value">€${items.length>0?Math.round(total/items.length).toLocaleString('ro-RO'):'0'}</div><div class="card-sub">Cost mediu</div></div>
-    </div>
-    <div class="table-card">
-      <div class="table-header"><h2>Istoricul Reparațiilor</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,'repTable')"></div>
-      ${items.length===0?`<div class="empty-state"><p>Nicio reparație înregistrată.</p></div>`:`
-      <table id="repTable"><thead><tr><th>Data</th><th>Camion</th><th>Tip</th><th>Descriere</th><th>Service</th><th>Cost</th><th>Acțiuni</th></tr></thead><tbody>
-      ${items.map(i=>`<tr><td style="font-family:'DM Mono',monospace;font-size:12px">${formatDate(i.data)}</td><td>${i.camion||'—'}</td><td><span class="badge badge-orange">${i.tip||'—'}</span></td><td>${i.descriere||'—'}</td><td>${i.service||'—'}</td><td class="profit-negative">€${parseFloat(i.cost||0).toLocaleString('ro-RO')}</td>
-      <td><div class="actions"><button class="action-btn" onclick='editItem("reparatii",${JSON.stringify(i)})'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="action-btn delete" onclick="deleteItem('reparatii','${i.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`).join('')}
-      </tbody></table>`}
-    </div>`;
+  const now=new Date();
+  const lunaAceasta=items.filter(i=>{const d=new Date(i.data);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,i)=>s+(parseFloat(i.cost)||0),0);
+  document.getElementById('content').innerHTML='<div class="cards-grid" style="grid-template-columns:repeat(3,1fr)"><div class="card card-red"><div class="card-label">Total</div><div class="card-value">&#8364;'+total.toLocaleString('ro-RO')+'</div><div class="card-sub">'+items.length+' intervenții</div></div><div class="card card-orange"><div class="card-label">Luna Aceasta</div><div class="card-value">&#8364;'+lunaAceasta.toLocaleString('ro-RO')+'</div><div class="card-sub">'+now.toLocaleString('ro-RO',{month:'long',year:'numeric'})+'</div></div><div class="card"><div class="card-label">Media / Intervenție</div><div class="card-value">&#8364;'+(items.length>0?Math.round(total/items.length).toLocaleString('ro-RO'):'0')+'</div><div class="card-sub">Cost mediu</div></div></div>'+
+  '<div class="table-card"><div class="table-header"><h2>Istoricul Reparațiilor</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,\'repTable\')"></div>'+
+  (items.length===0?'<div class="empty-state"><p>Nicio reparație înregistrată.</p></div>':
+  '<table id="repTable"><thead><tr><th>Data</th><th>Camion</th><th>Tip</th><th>Descriere</th><th>Service</th><th>Cost</th><th>Acțiuni</th></tr></thead><tbody>'+
+  items.map(i=>{const data=JSON.stringify(i).replace(/'/g,'&#39;');return '<tr><td style="font-family:\'DM Mono\',monospace;font-size:12px">'+formatDate(i.data)+'</td><td>'+(i.camion||'—')+'</td><td><span class="badge badge-orange">'+(i.tip||'—')+'</span></td><td>'+(i.descriere||'—')+'</td><td>'+(i.service||'—')+'</td><td class="profit-negative">&#8364;'+parseFloat(i.cost||0).toLocaleString('ro-RO')+'</td><td><div class="actions"><button class="action-btn" onclick=\'editItem("reparatii",'+data+')\'>'+editSVG()+'</button><button class="action-btn delete" onclick="deleteItem(\'reparatii\',\''+i.id+'\')">'+deleteSVG()+'</button></div></td></tr>';}).join('')+
+  '</tbody></table>')+'</div>';
 }
 
-// ===================== DOCUMENTE =====================
+// DOCUMENTE
 async function renderDocumente(){
   const{data}=await sb.from('documente').select('*').order('data_expirare',{ascending:true});
   const items=data||[],today=new Date();
-  const getStatus=d=>{if(!d.data_expirare)return{label:'Fără dată',cls:'badge-blue'};const diff=Math.round((new Date(d.data_expirare)-today)/86400000);if(diff<0)return{label:`Expirat ${Math.abs(diff)}z`,cls:'badge-red'};if(diff<=7)return{label:`${diff} zile`,cls:'badge-red'};if(diff<=30)return{label:`${diff} zile`,cls:'badge-orange'};return{label:`${diff} zile`,cls:'badge-green'};};
-  document.getElementById('content').innerHTML=`
-    <div class="table-card">
-      <div class="table-header"><h2>Evidență Documente & Scadențe</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,'docTable')"></div>
-      ${items.length===0?`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Niciun document înregistrat.</p></div>`:`
-      <table id="docTable"><thead><tr><th>Tip Document</th><th>Entitate</th><th>Nr. Document</th><th>Data Emitere</th><th>Data Expirare</th><th>Status</th><th>Note</th><th>Acțiuni</th></tr></thead><tbody>
-      ${items.map(i=>{const st=getStatus(i);return`<tr><td><strong>${i.tip_document||'—'}</strong></td><td>${i.entitate||'—'}</td><td style="font-family:'DM Mono',monospace;font-size:12px">${i.numar_document||'—'}</td><td style="font-family:'DM Mono',monospace;font-size:12px">${formatDate(i.data_emitere)}</td><td style="font-family:'DM Mono',monospace;font-size:12px">${formatDate(i.data_expirare)}</td><td><span class="badge ${st.cls}">${st.label}</span></td><td style="color:var(--text-muted);font-size:12px">${i.note||'—'}</td><td><div class="actions"><button class="action-btn" onclick='editItem("documente",${JSON.stringify(i)})'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="action-btn delete" onclick="deleteItem('documente','${i.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`;}).join('')}
-      </tbody></table>`}
-    </div>`;
+  const getStatus=d=>{if(!d.data_expirare)return{label:'Fără dată',cls:'badge-blue'};const diff=Math.round((new Date(d.data_expirare)-today)/86400000);if(diff<0)return{label:'Expirat '+Math.abs(diff)+'z',cls:'badge-red'};if(diff<=7)return{label:diff+' zile',cls:'badge-red'};if(diff<=30)return{label:diff+' zile',cls:'badge-orange'};return{label:diff+' zile',cls:'badge-green'};};
+  document.getElementById('content').innerHTML='<div class="table-card"><div class="table-header"><h2>Evidență Documente & Scadențe</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,\'docTable\')"></div>'+
+  (items.length===0?'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Niciun document înregistrat.</p></div>':
+  '<table id="docTable"><thead><tr><th>Tip Document</th><th>Entitate</th><th>Nr. Document</th><th>Data Emitere</th><th>Data Expirare</th><th>Status</th><th>Note</th><th>Acțiuni</th></tr></thead><tbody>'+
+  items.map(i=>{const st=getStatus(i);const data=JSON.stringify(i).replace(/'/g,'&#39;');return '<tr><td><strong>'+(i.tip_document||'—')+'</strong></td><td>'+(i.entitate||'—')+'</td><td style="font-family:\'DM Mono\',monospace;font-size:12px">'+(i.numar_document||'—')+'</td><td style="font-family:\'DM Mono\',monospace;font-size:12px">'+formatDate(i.data_emitere)+'</td><td style="font-family:\'DM Mono\',monospace;font-size:12px">'+formatDate(i.data_expirare)+'</td><td><span class="badge '+st.cls+'">'+st.label+'</span></td><td style="color:var(--text-muted);font-size:12px">'+(i.note||'—')+'</td><td><div class="actions"><button class="action-btn" onclick=\'editItem("documente",'+data+')\'>'+editSVG()+'</button><button class="action-btn delete" onclick="deleteItem(\'documente\',\''+i.id+'\')">'+deleteSVG()+'</button></div></td></tr>';}).join('')+
+  '</tbody></table>')+'</div>';
 }
 
-// ===================== FLOTA =====================
+// FLOTA
 async function renderFlota(){
   const{data}=await sb.from('flota').select('*').order('created_at',{ascending:false});
   const items=data||[];
-  document.getElementById('content').innerHTML=`
-    <div class="table-card">
-      <div class="table-header"><h2>Flotă (${items.length} vehicule)</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,'flotaTable')"></div>
-      ${items.length===0?`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg><p>Niciun vehicul înregistrat.</p></div>`:`
-      <table id="flotaTable"><thead><tr><th>Nr. Înmatriculare</th><th>Tip</th><th>Marcă/Model</th><th>An</th><th>Șofer</th><th>Status</th><th>Note</th><th>Acțiuni</th></tr></thead><tbody>
-      ${items.map(i=>`<tr><td><strong style="font-family:'DM Mono',monospace">${i.numar_inmatriculare||'—'}</strong></td><td><span class="badge badge-blue">${i.tip||'—'}</span></td><td>${i.marca||'—'} ${i.model||''}</td><td>${i.an_fabricatie||'—'}</td><td>${i.sofer||'—'}</td><td><span class="badge badge-${i.status==='Activ'?'green':'orange'}">${i.status||'—'}</span></td><td style="color:var(--text-muted);font-size:12px">${i.note||'—'}</td><td><div class="actions"><button class="action-btn" onclick='editItem("flota",${JSON.stringify(i)})'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="action-btn delete" onclick="deleteItem('flota','${i.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div></td></tr>`).join('')}
-      </tbody></table>`}
-    </div>`;
+  document.getElementById('content').innerHTML='<div class="table-card"><div class="table-header"><h2>Flotă ('+items.length+' vehicule)</h2><input class="search-input" placeholder="Caută..." oninput="filterTable(this,\'flotaTable\')"></div>'+
+  (items.length===0?'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg><p>Niciun vehicul înregistrat.</p></div>':
+  '<table id="flotaTable"><thead><tr><th>Nr. Înmatriculare</th><th>Tip</th><th>Marcă/Model</th><th>An</th><th>Șofer</th><th>Status</th><th>Note</th><th>Acțiuni</th></tr></thead><tbody>'+
+  items.map(i=>{const data=JSON.stringify(i).replace(/'/g,'&#39;');return '<tr><td><strong style="font-family:\'DM Mono\',monospace">'+(i.numar_inmatriculare||'—')+'</strong></td><td><span class="badge badge-blue">'+(i.tip||'—')+'</span></td><td>'+(i.marca||'—')+' '+(i.model||'')+'</td><td>'+(i.an_fabricatie||'—')+'</td><td>'+(i.sofer||'—')+'</td><td><span class="badge badge-'+(i.status==='Activ'?'green':'orange')+'">'+(i.status||'—')+'</span></td><td style="color:var(--text-muted);font-size:12px">'+(i.note||'—')+'</td><td><div class="actions"><button class="action-btn" onclick=\'editItem("flota",'+data+')\'>'+editSVG()+'</button><button class="action-btn delete" onclick="deleteItem(\'flota\',\''+i.id+'\')">'+deleteSVG()+'</button></div></td></tr>';}).join('')+
+  '</tbody></table>')+'</div>';
 }
 
-// ===================== MODALS =====================
+// SVG HELPERS
+function editSVG(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';}
+function deleteSVG(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
+
+// MODALS
 function openAddModal(){
   editingId=null;
   const forms={curse:cursaForm(null),cheltuieli:cheltuieliForm(null),reparatii:reparatiiForm(null),documente:documenteForm(null),flota:flotaForm(null),poi:poiForm(null)};
@@ -712,7 +519,7 @@ function closeModal(e){
 }
 
 async function saveModal(){
-  const g=id=>document.getElementById(id)?.value||'';
+  const g=id=>document.getElementById(id)?document.getElementById(id).value:'';
   let payload={},table=currentPage;
   if(table==='curse')payload={data_plecare:g('f_data_plecare'),origine:g('f_origine'),destinatie:g('f_destinatie'),camion:g('f_camion'),remorca:g('f_remorca'),sofer:g('f_sofer'),client:g('f_client'),status:g('f_status'),venit:parseFloat(g('f_venit'))||0,cost_total:parseFloat(g('f_cost_total'))||0,distanta_km:parseFloat(g('f_distanta'))||0,greutate_tone:parseFloat(g('f_greutate'))||20,note:g('f_note')};
   else if(table==='cheltuieli')payload={data:g('f_data'),camion:g('f_camion'),tip:g('f_tip'),descriere:g('f_descriere'),suma:parseFloat(g('f_suma'))||0};
@@ -738,123 +545,104 @@ async function deleteItem(table,id){
   renderPage(table);
 }
 
-// ===================== COST CALCULATOR =====================
+// COST CALCULATOR
 const CP={consum_baza:35,consum_per_tona:0.5,pret_combustibil:0.609,bonus_sofer:650,salariu_fix:130,rca:80,gps_altele:15,taxe_drum:63};
 function calcCost(km,tone){
   const d=parseFloat(km)||0,t=parseFloat(tone)||20;
   const ct=CP.consum_baza+(CP.consum_per_tona*t),L=(d/100)*ct,comb=L*CP.pret_combustibil;
   const total=comb+CP.bonus_sofer+CP.salariu_fix+CP.rca+CP.gps_altele+CP.taxe_drum;
-  return{combustibil:Math.round(comb),bonus_sofer:CP.bonus_sofer,salariu_fix:CP.salariu_fix,rca:CP.rca,gps_altele:CP.gps_altele,taxe_drum:CP.taxe_drum,total:Math.round(total),litri:Math.round(L)};
+  return{combustibil:Math.round(comb),total:Math.round(total),litri:Math.round(L)};
 }
 function updateCostCalc(){
-  const d=document.getElementById('f_distanta')?.value||0,g=document.getElementById('f_greutate')?.value||20;
-  const v=parseFloat(document.getElementById('f_venit')?.value)||0,c=calcCost(d,g),p=v-c.total;
-  document.getElementById('cost_combustibil').textContent=`€${c.combustibil}`;
-  document.getElementById('cost_sofer').textContent=`€${c.bonus_sofer+c.salariu_fix}`;
-  document.getElementById('cost_rca').textContent=`€${c.rca}`;
-  document.getElementById('cost_altele').textContent=`€${c.gps_altele+c.taxe_drum}`;
-  document.getElementById('cost_total_calc').textContent=`€${c.total}`;
-  document.getElementById('cost_profit').textContent=`€${p}`;
-  document.getElementById('cost_profit').style.color=p>=0?'var(--green)':'var(--red)';
-  document.getElementById('cost_litri').textContent=`${c.litri}L`;
-  document.getElementById('f_cost_total').value=c.total;
+  const d=document.getElementById('f_distanta')?document.getElementById('f_distanta').value:0;
+  const g=document.getElementById('f_greutate')?document.getElementById('f_greutate').value:20;
+  const v=parseFloat(document.getElementById('f_venit')?document.getElementById('f_venit').value:0)||0;
+  const c=calcCost(d,g),p=v-c.total;
+  if(document.getElementById('cost_combustibil'))document.getElementById('cost_combustibil').textContent='EUR '+c.combustibil;
+  if(document.getElementById('cost_total_calc'))document.getElementById('cost_total_calc').textContent='EUR '+c.total;
+  if(document.getElementById('cost_profit')){document.getElementById('cost_profit').textContent='EUR '+p;document.getElementById('cost_profit').style.color=p>=0?'var(--green)':'var(--red)';}
+  if(document.getElementById('cost_litri'))document.getElementById('cost_litri').textContent=c.litri+'L';
+  if(document.getElementById('f_cost_total'))document.getElementById('f_cost_total').value=c.total;
 }
 
-// ===================== FORMS =====================
+// FORMS
 function cursaForm(d){
-  const dist=d?.distanta_km||1800,gr=d?.greutate_tone||20,c=calcCost(dist,gr),v=parseFloat(d?.venit||0),p=v-c.total;
-  return`
-    <div class="form-row">
-      <div class="form-group"><label>Data Plecare</label><input type="date" id="f_data_plecare" value="${d?.data_plecare||today()}"></div>
-      <div class="form-group"><label>Status</label><select id="f_status">${['Planificată','În Tranzit','Finalizată','Anulată'].map(s=>`<option ${d?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Origine <span style="color:var(--purple);font-size:10px">📍 sugestii din POI</span></label>
-        <div class="poi-input-wrap">
-          <input id="f_origine" placeholder="ex: Pitești sau caută un POI..." value="${d?.origine||''}" autocomplete="off" oninput="showPOISuggestions('f_origine','poi_orig',this.value)">
-          <div class="poi-dropdown" id="poi_orig" style="display:none"></div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Destinație <span style="color:var(--purple);font-size:10px">📍 sugestii din POI</span></label>
-        <div class="poi-input-wrap">
-          <input id="f_destinatie" placeholder="ex: Bursa sau caută un POI..." value="${d?.destinatie||''}" autocomplete="off" oninput="showPOISuggestions('f_destinatie','poi_dest',this.value)">
-          <div class="poi-dropdown" id="poi_dest" style="display:none"></div>
-        </div>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="${d?.camion||''}"></div>
-      <div class="form-group"><label>Remorcă</label><input id="f_remorca" placeholder="ex: AG 16 AGL" value="${d?.remorca||''}"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Șofer</label><input id="f_sofer" placeholder="Nume șofer" value="${d?.sofer||''}"></div>
-      <div class="form-group"><label>Client</label><input id="f_client" placeholder="Firma client" value="${d?.client||''}"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Distanță (km) <span style="color:var(--blue);font-size:10px">— calc. automat cost</span></label><input type="number" id="f_distanta" value="${dist}" oninput="updateCostCalc()"></div>
-      <div class="form-group"><label>Greutate Marfă (tone)</label><input type="number" id="f_greutate" value="${gr}" oninput="updateCostCalc()"></div>
-    </div>
-    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">📊 Calculator Cost Automat</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
-        <div style="display:flex;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--text-muted)">⛽ Combustibil (<span id="cost_litri">${c.litri}L</span>)</span><strong id="cost_combustibil">€${c.combustibil}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--text-muted)">👤 Șofer</span><strong id="cost_sofer">€${c.bonus_sofer+c.salariu_fix}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--text-muted)">🛡️ RCA</span><strong id="cost_rca">€${c.rca}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--text-muted)">🛣️ Taxe + GPS</span><strong id="cost_altele">€${c.gps_altele+c.taxe_drum}</strong></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 10px;background:#0f1117;border-radius:7px">
-        <span style="color:#9ca3af;font-size:12px;font-weight:600">COST TOTAL</span>
-        <strong id="cost_total_calc" style="color:white;font-size:15px;font-family:'DM Mono',monospace">€${c.total}</strong>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Venit Cursă (EUR)</label><input type="number" id="f_venit" placeholder="2700" value="${d?.venit||''}" oninput="updateCostCalc()"></div>
-      <div class="form-group"><label>Cost Total (EUR) <span style="color:var(--blue);font-size:10px">— automat</span></label><input type="number" id="f_cost_total" value="${d?.cost_total||c.total}" style="background:#f9fafb"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;background:var(--green-light);border:1px solid #86efac;margin-bottom:14px">
-      <span style="font-size:13px;font-weight:600;color:var(--green)">Profit Estimat</span>
-      <strong id="cost_profit" style="font-size:16px;font-family:'DM Mono',monospace;color:${p>=0?'var(--green)':'var(--red)'}">€${p}</strong>
-    </div>
-    <div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">${d?.note||''}</textarea></div></div>`;
+  const dist=d&&d.distanta_km?d.distanta_km:1800,gr=d&&d.greutate_tone?d.greutate_tone:20;
+  const c=calcCost(dist,gr),v=parseFloat(d&&d.venit?d.venit:0),p=v-c.total;
+  const statuses=['Planificată','În Tranzit','Finalizată','Anulată'];
+  return '<div class="form-row"><div class="form-group"><label>Data Plecare</label><input type="date" id="f_data_plecare" value="'+(d&&d.data_plecare?d.data_plecare:today())+'"></div><div class="form-group"><label>Status</label><select id="f_status">'+statuses.map(s=>'<option'+(d&&d.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>'+
+  '<div class="form-row"><div class="form-group"><label>Origine</label><div class="poi-input-wrap"><input id="f_origine" placeholder="ex: Pitești" value="'+(d&&d.origine?d.origine:'')+'" autocomplete="off" oninput="showPOISuggestions(\'f_origine\',\'poi_orig\',this.value)"><div class="poi-dropdown" id="poi_orig" style="display:none"></div></div></div><div class="form-group"><label>Destinație</label><div class="poi-input-wrap"><input id="f_destinatie" placeholder="ex: Bursa" value="'+(d&&d.destinatie?d.destinatie:'')+'" autocomplete="off" oninput="showPOISuggestions(\'f_destinatie\',\'poi_dest\',this.value)"><div class="poi-dropdown" id="poi_dest" style="display:none"></div></div></div></div>'+
+  '<div class="form-row"><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div><div class="form-group"><label>Remorcă</label><input id="f_remorca" placeholder="ex: AG 16 AGL" value="'+(d&&d.remorca?d.remorca:'')+'"></div></div>'+
+  '<div class="form-row"><div class="form-group"><label>Șofer</label><input id="f_sofer" placeholder="Nume șofer" value="'+(d&&d.sofer?d.sofer:'')+'"></div><div class="form-group"><label>Client</label><input id="f_client" placeholder="Firma client" value="'+(d&&d.client?d.client:'')+'"></div></div>'+
+  '<div class="form-row"><div class="form-group"><label>Distanță (km)</label><input type="number" id="f_distanta" value="'+dist+'" oninput="updateCostCalc()"></div><div class="form-group"><label>Greutate Marfă (tone)</label><input type="number" id="f_greutate" value="'+gr+'" oninput="updateCostCalc()"></div></div>'+
+  '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Calculator Cost Automat</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px"><div style="display:flex;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--text-muted)">Combustibil (<span id="cost_litri">'+c.litri+'L</span>)</span><strong id="cost_combustibil">EUR '+c.combustibil+'</strong></div><div style="display:flex;justify-content:space-between;padding:5px 8px;background:white;border-radius:6px;border:1px solid var(--border)"><span style="color:var(--text-muted)">Sofer + Taxe + Altele</span><strong>EUR '+(CP.bonus_sofer+CP.salariu_fix+CP.rca+CP.gps_altele+CP.taxe_drum)+'</strong></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 10px;background:#0f1117;border-radius:7px"><span style="color:#9ca3af;font-size:12px;font-weight:600">COST TOTAL</span><strong id="cost_total_calc" style="color:white;font-size:15px">EUR '+c.total+'</strong></div></div>'+
+  '<div class="form-row"><div class="form-group"><label>Venit Cursă (EUR)</label><input type="number" id="f_venit" placeholder="2700" value="'+(d&&d.venit?d.venit:'')+'" oninput="updateCostCalc()"></div><div class="form-group"><label>Cost Total (EUR)</label><input type="number" id="f_cost_total" value="'+(d&&d.cost_total?d.cost_total:c.total)+'" style="background:#f9fafb"></div></div>'+
+  '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;background:var(--green-light);border:1px solid #86efac;margin-bottom:14px"><span style="font-size:13px;font-weight:600;color:var(--green)">Profit Estimat</span><strong id="cost_profit" style="font-size:16px;color:'+(p>=0?'var(--green)':'var(--red)')+'">EUR '+p+'</strong></div>'+
+  '<div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">'+(d&&d.note?d.note:'')+'</textarea></div></div>';
 }
 
-function cheltuieliForm(d){return`<div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="${d?.data||today()}"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="${d?.camion||''}"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">${['Combustibil','Taxe Drum','Vignete','Salariu','GPS/Telefon','Asigurare','Altele'].map(s=>`<option ${d?.tip===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Sumă (EUR)</label><input type="number" id="f_suma" placeholder="0" value="${d?.suma||''}"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><input id="f_descriere" placeholder="Detalii" value="${d?.descriere||''}"></div></div>`;}
+function cheltuieliForm(d){
+  const tipuri=['Combustibil','Taxe Drum','Vignete','Salariu','GPS/Telefon','Asigurare','Altele'];
+  return '<div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="'+(d&&d.data?d.data:today())+'"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Sumă (EUR)</label><input type="number" id="f_suma" placeholder="0" value="'+(d&&d.suma?d.suma:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><input id="f_descriere" placeholder="Detalii" value="'+(d&&d.descriere?d.descriere:'')+'"></div></div>';
+}
 
-function reparatiiForm(d){return`<div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="${d?.data||today()}"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="${d?.camion||''}"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">${['Reparație','Revizie','Înlocuire Piese','Anvelope','ITP','Altele'].map(s=>`<option ${d?.tip===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Cost (EUR)</label><input type="number" id="f_cost" placeholder="0" value="${d?.cost||''}"></div></div><div class="form-row"><div class="form-group"><label>Service</label><input id="f_service" placeholder="Numele service-ului" value="${d?.service||''}"></div></div><div class="form-row full"><div class="form-group"><label>Descriere Lucrare</label><textarea id="f_descriere" placeholder="Ce s-a reparat...">${d?.descriere||''}</textarea></div></div>`;}
+function reparatiiForm(d){
+  const tipuri=['Reparație','Revizie','Înlocuire Piese','Anvelope','ITP','Altele'];
+  return '<div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="'+(d&&d.data?d.data:today())+'"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Cost (EUR)</label><input type="number" id="f_cost" placeholder="0" value="'+(d&&d.cost?d.cost:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Service</label><input id="f_service" placeholder="Numele service-ului" value="'+(d&&d.service?d.service:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><textarea id="f_descriere" placeholder="Ce s-a reparat...">'+(d&&d.descriere?d.descriere:'')+'</textarea></div></div>';
+}
 
-function documenteForm(d){return`<div class="form-row"><div class="form-group"><label>Tip Document</label><select id="f_tip_document">${['RCA','CASCO','ITP','Atestare Șofer','Viză','Talon','CMR','Altele'].map(s=>`<option ${d?.tip_document===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Entitate</label><input id="f_entitate" placeholder="ex: AG 37 AGL sau Ion Popescu" value="${d?.entitate||''}"></div></div><div class="form-row"><div class="form-group"><label>Număr Document</label><input id="f_numar_document" placeholder="ex: RCA-12345" value="${d?.numar_document||''}"></div></div><div class="form-row"><div class="form-group"><label>Data Emitere</label><input type="date" id="f_data_emitere" value="${d?.data_emitere||today()}"></div><div class="form-group"><label>Data Expirare</label><input type="date" id="f_data_expirare" value="${d?.data_expirare||''}"></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">${d?.note||''}</textarea></div></div>`;}
+function documenteForm(d){
+  const tipuri=['RCA','CASCO','ITP','Atestare Șofer','Viză','Talon','CMR','Altele'];
+  return '<div class="form-row"><div class="form-group"><label>Tip Document</label><select id="f_tip_document">'+tipuri.map(s=>'<option'+(d&&d.tip_document===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Entitate</label><input id="f_entitate" placeholder="ex: AG 37 AGL sau Ion Popescu" value="'+(d&&d.entitate?d.entitate:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Număr Document</label><input id="f_numar_document" placeholder="ex: RCA-12345" value="'+(d&&d.numar_document?d.numar_document:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Data Emitere</label><input type="date" id="f_data_emitere" value="'+(d&&d.data_emitere?d.data_emitere:today())+'"></div><div class="form-group"><label>Data Expirare</label><input type="date" id="f_data_expirare" value="'+(d&&d.data_expirare?d.data_expirare:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">'+(d&&d.note?d.note:'')+'</textarea></div></div>';
+}
 
-function flotaForm(d){return`<div class="form-row"><div class="form-group"><label>Nr. Înmatriculare</label><input id="f_numar_inmatriculare" placeholder="ex: AG 37 AGL" value="${d?.numar_inmatriculare||''}"></div><div class="form-group"><label>Tip</label><select id="f_tip">${['Tractor','Remorcă','Autoutilitară','Altele'].map(s=>`<option ${d?.tip===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div class="form-row three"><div class="form-group"><label>Marcă</label><input id="f_marca" placeholder="ex: Volvo" value="${d?.marca||''}"></div><div class="form-group"><label>Model</label><input id="f_model" placeholder="ex: FH16" value="${d?.model||''}"></div><div class="form-group"><label>An Fabricație</label><input type="number" id="f_an_fabricatie" placeholder="2019" value="${d?.an_fabricatie||''}"></div></div><div class="form-row"><div class="form-group"><label>Șofer Asignat</label><input id="f_sofer" placeholder="Numele șoferului" value="${d?.sofer||''}"></div><div class="form-group"><label>Status</label><select id="f_status_vehicul">${['Activ','În Service','Inactiv'].map(s=>`<option ${d?.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">${d?.note||''}</textarea></div></div>`;}
+function flotaForm(d){
+  const tipuri=['Tractor','Remorcă','Autoutilitară','Altele'];
+  const statuses=['Activ','În Service','Inactiv'];
+  return '<div class="form-row"><div class="form-group"><label>Nr. Înmatriculare</label><input id="f_numar_inmatriculare" placeholder="ex: AG 37 AGL" value="'+(d&&d.numar_inmatriculare?d.numar_inmatriculare:'')+'"></div><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div><div class="form-row three"><div class="form-group"><label>Marcă</label><input id="f_marca" placeholder="ex: Volvo" value="'+(d&&d.marca?d.marca:'')+'"></div><div class="form-group"><label>Model</label><input id="f_model" placeholder="ex: FH16" value="'+(d&&d.model?d.model:'')+'"></div><div class="form-group"><label>An Fabricație</label><input type="number" id="f_an_fabricatie" placeholder="2019" value="'+(d&&d.an_fabricatie?d.an_fabricatie:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Șofer Asignat</label><input id="f_sofer" placeholder="Numele șoferului" value="'+(d&&d.sofer?d.sofer:'')+'"></div><div class="form-group"><label>Status</label><select id="f_status_vehicul">'+statuses.map(s=>'<option'+(d&&d.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">'+(d&&d.note?d.note:'')+'</textarea></div></div>';
+}
 
-function poiForm(d){return`
-  <div class="form-row">
-    <div class="form-group"><label>Nume Locație *</label><input id="f_poi_nume" placeholder="ex: Dacia Mioveni, Vamă Giurgiu" value="${d?.nume||''}"></div>
-    <div class="form-group"><label>Tip Locație</label><select id="f_poi_tip">${Object.keys(POI_TYPES).map(t=>`<option ${d?.tip===t?'selected':''}>${t}</option>`).join('')}</select></div>
-  </div>
-  <div class="form-row">
-    <div class="form-group"><label>Adresă</label><input id="f_poi_adresa" placeholder="Strada, Nr, Oraș" value="${d?.adresa||''}"></div>
-    <div class="form-group"><label>Țară</label><input id="f_poi_tara" placeholder="ex: Romania, Turkey, Bulgaria" value="${d?.tara||''}"></div>
-  </div>
-  <div class="form-row full"><div class="form-group"><label>Contact (telefon / email)</label><input id="f_poi_contact" placeholder="ex: +40 724 123 456" value="${d?.contact||''}"></div></div>
-  <div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_poi_note" placeholder="Ore program, instrucțiuni acces, persoană contact...">${d?.note||''}</textarea></div></div>`;}
+function poiForm(d){
+  const tipuri=Object.keys(POI_TYPES);
+  return '<div class="form-row"><div class="form-group"><label>Nume Locație</label><input id="f_poi_nume" placeholder="ex: Dacia Mioveni, Vamă Giurgiu" value="'+(d&&d.nume?d.nume:'')+'"></div><div class="form-group"><label>Tip Locație</label><select id="f_poi_tip">'+tipuri.map(t=>'<option'+(d&&d.tip===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div></div><div class="form-row"><div class="form-group"><label>Adresă</label><input id="f_poi_adresa" placeholder="Strada, Nr, Oraș" value="'+(d&&d.adresa?d.adresa:'')+'"></div><div class="form-group"><label>Țară</label><input id="f_poi_tara" placeholder="ex: Romania, Turkey" value="'+(d&&d.tara?d.tara:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Contact</label><input id="f_poi_contact" placeholder="ex: +40 724 123 456" value="'+(d&&d.contact?d.contact:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_poi_note" placeholder="Ore program, instrucțiuni acces...">'+(d&&d.note?d.note:'')+'</textarea></div></div>';
+}
 
-// ===================== UTILS =====================
+// UTILS
 function today(){return new Date().toISOString().split('T')[0];}
-function formatDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('ro-RO');}
-function showError(msg){document.getElementById('content').innerHTML=`<div class="alert alert-red">${msg}</div>`;}
-function filterTable(input,tableId){const val=input.value.toLowerCase();document.querySelectorAll(`#${tableId} tbody tr`).forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(val)?'':'none';});}
+function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('ro-RO');}
+function showError(msg){document.getElementById('content').innerHTML='<div class="alert alert-red">'+msg+'</div>';}
+function filterTable(input,tableId){const val=input.value.toLowerCase();document.querySelectorAll('#'+tableId+' tbody tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(val)?'':'none';});}
 
-// ===================== START =====================
-async function init(){await loadPOICache();showPage('dashboard');}
-// Verifică dacă e deja logat
-if(localStorage.getItem(AUTH_KEY)==='1'){
-  showApp();
-  init();
-} else {
-  showLogin();
+// AUTH
+const PK='axmtms_pass';
+function hp(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h.toString(36);}
+function showView(v){document.getElementById('viewSignin').style.display=v==='signin'?'block':'none';document.getElementById('viewSetup').style.display=v==='setup'?'block':'none';document.getElementById('loginError').style.display='none';}
+function toggleEye(){const i=document.getElementById('inputPass');i.type=i.type==='password'?'text':'password';}
+function showErr(msg){const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';}
+function doLogin(){
+  const pass=document.getElementById('inputPass').value;
+  if(!pass){showErr('Introdu parola.');return;}
+  const saved=localStorage.getItem(PK);
+  if(!saved){showErr('Nu ai setat o parolă. Apasă "Setează parola".');return;}
+  if(hp(pass)===saved){document.getElementById('loginPage').style.display='none';}
+  else{showErr('Parolă incorectă.');document.getElementById('inputPass').value='';}
 }
+function doSetup(){
+  const p1=document.getElementById('inputNewPass').value;
+  const p2=document.getElementById('inputConfPass').value;
+  if(!p1){showErr('Introdu o parolă.');return;}
+  if(p1.length<6){showErr('Parola trebuie să aibă minim 6 caractere.');return;}
+  if(p1!==p2){showErr('Parolele nu coincid.');return;}
+  localStorage.setItem(PK,hp(p1));
+  document.getElementById('loginPage').style.display='none';
+}
+
+// START
+async function init(){await loadPOICache();showPage('dashboard');}
+
+// Check auth on load
+if(!localStorage.getItem(PK)){showView('setup');}
+init();
 </script>
 </body>
 </html>
