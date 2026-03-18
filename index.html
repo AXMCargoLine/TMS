@@ -223,20 +223,10 @@
       </div>
       <div id="formSignIn">
         <div class="login-title">Bine ai revenit</div>
-        <div class="login-sub">Introdu credențialele pentru a accesa contul</div>
+        <div class="login-sub">Introdu parola pentru a accesa FleetTMS</div>
         <div class="login-error" id="signinError"></div>
         <div class="login-field">
-          <label>Email</label>
-          <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <input type="email" id="signinEmail" placeholder="adresa@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()">
-          </div>
-        </div>
-        <div class="login-field">
-          <div class="login-field-row">
-            <label>Parolă</label>
-            <a href="#" class="login-forgot" onclick="showForgot(event)">Ai uitat parola?</a>
-          </div>
+          <label>Parolă</label>
           <div class="login-field-inner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input type="password" id="signinPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
@@ -244,35 +234,33 @@
           </div>
         </div>
         <button class="login-submit" id="signinBtn" onclick="doSignIn()">
-          <span>Sign In</span>
+          <span>Intră în aplicație</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
-        <div class="login-divider"><span>sau</span></div>
-        <div style="text-align:center;font-size:13px;color:var(--text-muted)">Nu ai cont? <a href="#" onclick="switchTab('signup')" style="color:var(--blue);font-weight:600">Înregistrează-te</a></div>
-        <div style="text-align:center;margin-top:20px;font-size:11px;color:var(--text-muted)">🔒 Autentificare securizată prin Supabase</div>
+        <div style="text-align:center;margin-top:20px;font-size:11px;color:var(--text-muted)">🔒 FleetTMS — AXM Cargo</div>
       </div>
       <div id="formSignUp" style="display:none">
-        <div class="login-title">Creează cont</div>
-        <div class="login-sub">Completează datele pentru contul de admin</div>
+        <div class="login-title">Setează parola</div>
+        <div class="login-sub">Prima accesare — creează parola de admin</div>
         <div class="login-error" id="signupError"></div>
         <div class="login-success" id="signupSuccess"></div>
         <div class="login-field">
-          <label>Email</label>
-          <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <input type="email" id="signupEmail" placeholder="adresa@email.com">
-          </div>
-        </div>
-        <div class="login-field">
-          <label>Parolă (minim 6 caractere)</label>
+          <label>Parolă nouă (minim 6 caractere)</label>
           <div class="login-field-inner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input type="password" id="signupPassword" placeholder="••••••••">
             <button class="eye-btn" onclick="togglePass('signupPassword',this)" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
           </div>
         </div>
-        <button class="login-submit" onclick="doSignUp()"><span>Creează Cont</span></button>
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted)">Ai deja cont? <a href="#" onclick="switchTab('signin')" style="color:var(--blue);font-weight:600">Sign In</a></div>
+        <div class="login-field">
+          <label>Confirmă parola</label>
+          <div class="login-field-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="signupPassword2" placeholder="••••••••">
+          </div>
+        </div>
+        <button class="login-submit" onclick="doSignUp()"><span>Salvează Parola</span></button>
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted)">Ai deja parola? <a href="#" onclick="switchTab('signin')" style="color:var(--blue);font-weight:600">Sign In</a></div>
       </div>
     </div>
   </div>
@@ -380,6 +368,10 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentPage='dashboard',editingId=null,poiCache=[];
 
 // ===================== AUTH =====================
+// ===================== AUTH — parolă locală simplă =====================
+const AUTH_KEY = 'fleetTMS_auth';
+const PASS_KEY = 'fleetTMS_pass';
+
 function switchTab(tab){
   document.getElementById('tabSignIn').classList.toggle('active',tab==='signin');
   document.getElementById('tabSignUp').classList.toggle('active',tab==='signup');
@@ -392,39 +384,49 @@ function togglePass(id,btn){
   inp.type=inp.type==='password'?'text':'password';
 }
 
-async function doSignIn(){
-  const email=document.getElementById('signinEmail').value.trim();
-  const pass=document.getElementById('signinPassword').value;
-  const errEl=document.getElementById('signinError');
-  const btn=document.getElementById('signinBtn');
-  errEl.style.display='none';
-  if(!email||!pass){errEl.textContent='Completează email și parola.';errEl.style.display='block';return;}
-  btn.disabled=true;btn.querySelector('span').textContent='Se conectează...';
-  const{error}=await sb.auth.signInWithPassword({email,password:pass});
-  btn.disabled=false;btn.querySelector('span').textContent='Sign In';
-  if(error){errEl.textContent=error.message==='Invalid login credentials'?'Email sau parolă incorectă.':error.message;errEl.style.display='block';}
+function hashPass(str){
+  // Simple hash pentru parola locală
+  let hash=0;
+  for(let i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;}
+  return hash.toString(36);
 }
 
-async function doSignUp(){
-  const email=document.getElementById('signupEmail').value.trim();
+function doSignIn(){
+  const pass=document.getElementById('signinPassword').value;
+  const errEl=document.getElementById('signinError');
+  errEl.style.display='none';
+  if(!pass){errEl.textContent='Introdu parola.';errEl.style.display='block';return;}
+  const savedPass=localStorage.getItem(PASS_KEY);
+  if(!savedPass){
+    errEl.textContent='Nu ai setat o parolă. Mergi la "Setează parola".';
+    errEl.style.display='block';
+    return;
+  }
+  if(hashPass(pass)===savedPass){
+    localStorage.setItem(AUTH_KEY,'1');
+    showApp();
+    init();
+  } else {
+    errEl.textContent='Parolă incorectă.';
+    errEl.style.display='block';
+    document.getElementById('signinPassword').value='';
+  }
+}
+
+function doSignUp(){
   const pass=document.getElementById('signupPassword').value;
+  const pass2=document.getElementById('signupPassword2').value;
   const errEl=document.getElementById('signupError');
   const sucEl=document.getElementById('signupSuccess');
   errEl.style.display='none';sucEl.style.display='none';
-  if(!email||!pass){errEl.textContent='Completează toate câmpurile.';errEl.style.display='block';return;}
+  if(!pass){errEl.textContent='Introdu o parolă.';errEl.style.display='block';return;}
   if(pass.length<6){errEl.textContent='Parola trebuie să aibă minim 6 caractere.';errEl.style.display='block';return;}
-  const{error}=await sb.auth.signUp({email,password:pass});
-  if(error){errEl.textContent=error.message;errEl.style.display='block';}
-  else{sucEl.textContent='Cont creat! Verifică emailul pentru confirmare, apoi Sign In.';sucEl.style.display='block';}
-}
-
-async function showForgot(e){
-  e&&e.preventDefault();
-  const email=document.getElementById('signinEmail').value.trim();
-  if(!email){document.getElementById('signinError').textContent='Introdu emailul mai întâi.';document.getElementById('signinError').style.display='block';return;}
-  await sb.auth.resetPasswordForEmail(email);
-  document.getElementById('signinError').style.display='none';
-  alert('Email de resetare parolă trimis la '+email);
+  if(pass!==pass2){errEl.textContent='Parolele nu coincid.';errEl.style.display='block';return;}
+  localStorage.setItem(PASS_KEY,hashPass(pass));
+  localStorage.setItem(AUTH_KEY,'1');
+  sucEl.textContent='Parolă salvată! Te loghezi automat...';
+  sucEl.style.display='block';
+  setTimeout(()=>{showApp();init();},1000);
 }
 
 function showApp(){
@@ -433,24 +435,16 @@ function showApp(){
 
 function showLogin(){
   document.getElementById('loginPage').style.display='flex';
+  // Dacă nu există parolă setată, arată tab-ul de creare parolă
+  if(!localStorage.getItem(PASS_KEY)){
+    switchTab('signup');
+  }
 }
 
-async function doLogout(){
-  await sb.auth.signOut();
+function doLogout(){
+  localStorage.removeItem(AUTH_KEY);
   showLogin();
 }
-
-// Auth state listener
-sb.auth.onAuthStateChange((event,session)=>{
-  if(session){
-    showApp();
-    const email=session.user.email;
-    document.getElementById('userEmail').textContent=email;
-    if(!poiCache.length)init();
-  } else {
-    showLogin();
-  }
-});
 
 // CLOCK
 const tickClock=()=>document.getElementById('clock').textContent=new Date().toLocaleString('ro-RO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -854,8 +848,13 @@ function filterTable(input,tableId){const val=input.value.toLowerCase();document
 
 // ===================== START =====================
 async function init(){await loadPOICache();showPage('dashboard');}
-// Auth check on load — show login by default, auth listener will show app if logged in
-document.getElementById('loginPage').style.display='flex';
+// Verifică dacă e deja logat
+if(localStorage.getItem(AUTH_KEY)==='1'){
+  showApp();
+  init();
+} else {
+  showLogin();
+}
 </script>
 </body>
 </html>
