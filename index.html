@@ -110,7 +110,22 @@ tr:hover td{background:#f9fafb;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .profit-positive{color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px;}
 .profit-negative{color:var(--red);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px;}
-.poi-input-wrap{position:relative;}
+.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.notif-modal{background:white;border-radius:16px;width:520px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 25px 80px rgba(0,0,0,0.25);}
+.notif-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.notif-header-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.notif-header h3{font-size:16px;font-weight:700;}
+.notif-header p{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.notif-body{padding:16px 24px;}
+.notif-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;margin-bottom:8px;border:1px solid;}
+.notif-item-left{display:flex;flex-direction:column;gap:3px;}
+.notif-item-doc{font-size:13px;font-weight:600;}
+.notif-item-ent{font-size:12px;color:var(--text-muted);}
+.notif-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.notif-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+.notif-bell{width:34px;height:34px;border-radius:8px;background:white;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);transition:all 0.15s;flex-shrink:0;position:relative;}
+.notif-bell:hover{background:var(--bg);}
+.notif-dot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--red);color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid white;}
 .poi-dropdown{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
 .poi-option{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f3f4f6;}
 .poi-option:last-child{border-bottom:none;}
@@ -271,6 +286,14 @@ tr:hover td{background:#f9fafb;}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span>Locații POI</span>
       </div>
+      <div class="nav-item" onclick="showPage('costuri')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Costuri Fixe</span>
+      </div>
+      <div class="nav-item" onclick="showPage('deconturi')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Deconturi</span>
+      </div>
     </div>
   </nav>
   <div class="sidebar-bottom">
@@ -286,6 +309,10 @@ tr:hover td{background:#f9fafb;}
     <div style="display:flex;align-items:center;gap:12px"><h1 id="pageTitle">Dashboard</h1></div>
     <div class="topbar-right">
       <span class="topbar-time" id="clock"></span>
+      <div class="notif-bell" id="notifBell" onclick="showNotifModal()" title="Notificări scadențe" style="display:none">
+        🔔
+        <div class="notif-dot" id="notifDot" style="display:none"></div>
+      </div>
       <button class="btn btn-primary" id="addBtn" onclick="openAddModal()" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <span id="addBtnLabel">Adaugă</span>
@@ -309,13 +336,132 @@ tr:hover td{background:#f9fafb;}
   </div>
 </div>
 
+<div id="notifOverlay" class="notif-overlay" style="display:none" onclick="if(event.target===this)closeNotifModal()">
+  <div class="notif-modal">
+    <div class="notif-header">
+      <div class="notif-header-icon" style="background:#fef2f2">🔔</div>
+      <div>
+        <h3>Notificări Scadențe</h3>
+        <p id="notifSubtitle">Documente care necesită atenție</p>
+      </div>
+    </div>
+    <div class="notif-body" id="notifBody"></div>
+    <div class="notif-footer">
+      <button class="btn btn-secondary" onclick="closeNotifModal()">Închide</button>
+      <button class="btn btn-primary" onclick="showPage('documente');closeNotifModal()">Vezi toate documentele →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL='https://ogqyvwzmdfvyouseipik.supabase.co';
 const SUPABASE_KEY='sb_publishable_ufnBdXhXbPCDUIV6eUPG_A_T-teDiXN';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 let currentPage='dashboard',editingId=null,poiCache=[];
 
-// CLOCK
+// NOTIFICĂRI SCADENȚE
+const NOTIF_KEY='axmtms_notif_last';
+let notifDocumente=[];
+
+async function checkNotificari(){
+  const{data}=await sb.from('documente').select('*');
+  const doc=data||[];
+  const today=new Date();
+  const alerte=[];
+
+  doc.forEach(d=>{
+    if(!d.data_expirare)return;
+    const exp=new Date(d.data_expirare);
+    const diff=Math.round((exp-today)/86400000);
+    if(diff<0){alerte.push({...d,diff,nivel:'expirat'});}
+    else if(diff<=7){alerte.push({...d,diff,nivel:'critic'});}
+    else if(diff<=14){alerte.push({...d,diff,nivel:'urgent'});}
+    else if(diff<=30){alerte.push({...d,diff,nivel:'atentie'});}
+  });
+
+  notifDocumente=alerte.sort((a,b)=>a.diff-b.diff);
+
+  // Afișează clopotelul întotdeauna când există alerte
+  const bell=document.getElementById('notifBell');
+  const dot=document.getElementById('notifDot');
+  if(bell){
+    if(alerte.length>0){
+      bell.style.display='flex';
+      // Culoare roșie pentru expirate/critice, galbenă pentru celelalte
+      const critice=alerte.filter(a=>a.nivel==='expirat'||a.nivel==='critic');
+      bell.style.background=critice.length>0?'#fef2f2':'#fffbeb';
+      bell.style.borderColor=critice.length>0?'#fca5a5':'#fcd34d';
+    } else {
+      bell.style.display='none';
+    }
+    if(dot){
+      dot.style.display=alerte.length>0?'flex':'none';
+      dot.textContent=alerte.length>9?'9+':String(alerte.length);
+    }
+  }
+
+  // Popup automat - o dată pe zi pentru alerte critice
+  const lastNotif=localStorage.getItem(NOTIF_KEY);
+  const todayStr=new Date().toLocaleDateString('ro-RO');
+  const critice=alerte.filter(a=>a.nivel==='expirat'||a.nivel==='critic');
+  if(critice.length>0&&lastNotif!==todayStr){
+    localStorage.setItem(NOTIF_KEY,todayStr);
+    setTimeout(()=>showNotifModal(),1500);
+  }
+}
+
+function showNotifModal(){
+  if(notifDocumente.length===0){
+    alert('Nu există documente cu scadențe apropiate. Totul este în regulă ✓');
+    return;
+  }
+  const total=notifDocumente.length;
+  const expirate=notifDocumente.filter(d=>d.nivel==='expirat').length;
+  document.getElementById('notifSubtitle').textContent=
+    `${total} document(e) necesită atenție${expirate>0?' — '+expirate+' expirate!':''}`;
+
+  const nivelConfig={
+    expirat:{bg:'#fef2f2',border:'#fca5a5',badgeBg:'#dc2626',badgeColor:'white',label:'EXPIRAT'},
+    critic:{bg:'#fff7ed',border:'#fdba74',badgeBg:'#ea580c',badgeColor:'white',label:'7 ZILE'},
+    urgent:{bg:'#fffbeb',border:'#fcd34d',badgeBg:'#d97706',badgeColor:'white',label:'14 ZILE'},
+    atentie:{bg:'#f0fdf4',border:'#86efac',badgeBg:'#16a34a',badgeColor:'white',label:'30 ZILE'},
+  };
+
+  // Grupează pe niveluri
+  const grupe=[
+    {key:'expirat',label:'🔴 Expirate'},
+    {key:'critic',label:'🟠 Expiră în 7 zile'},
+    {key:'urgent',label:'🟡 Expiră în 14 zile'},
+    {key:'atentie',label:'🟢 Expiră în 30 zile'},
+  ];
+
+  let html='';
+  grupe.forEach(g=>{
+    const items=notifDocumente.filter(d=>d.nivel===g.key);
+    if(items.length===0)return;
+    const cfg=nivelConfig[g.key];
+    html+=`<div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 8px">${g.label}</div>`;
+    items.forEach(d=>{
+      const label=d.diff<0?`Expirat de ${Math.abs(d.diff)} zile`:
+        d.diff===0?'Expiră AZI!':
+        `Expiră în ${d.diff} zile`;
+      html+=`<div class="notif-item" style="background:${cfg.bg};border-color:${cfg.border}">
+        <div class="notif-item-left">
+          <div class="notif-item-doc">${d.tip_document||'Document'} — ${d.entitate||'—'}</div>
+          <div class="notif-item-ent">${d.numar_document?'Nr: '+d.numar_document:''}${d.data_expirare?' · Expiră: '+formatDate(d.data_expirare):''}</div>
+        </div>
+        <span class="notif-badge" style="background:${cfg.badgeBg};color:${cfg.badgeColor}">${label}</span>
+      </div>`;
+    });
+  });
+
+  document.getElementById('notifBody').innerHTML=html;
+  document.getElementById('notifOverlay').style.display='flex';
+}
+
+function closeNotifModal(){
+  document.getElementById('notifOverlay').style.display='none';
+}
 const tickClock=()=>document.getElementById('clock').textContent=new Date().toLocaleString('ro-RO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 tickClock();setInterval(tickClock,1000);
 
@@ -323,18 +469,18 @@ tickClock();setInterval(tickClock,1000);
 function showPage(page){
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(i=>{i.classList.remove('active');if(i.getAttribute('onclick')?.includes("'"+page+"'"))i.classList.add('active');});
-  const titles={dashboard:'Dashboard',curse:'Gestionare Curse',cheltuieli:'Cheltuieli',reparatii:'Reparații',documente:'Documente',flota:'Flotă',poi:'Locații POI'};
+  const titles={dashboard:'Dashboard',curse:'Gestionare Curse',cheltuieli:'Cheltuieli',reparatii:'Reparații',documente:'Documente',flota:'Flotă',poi:'Locații POI',costuri:'Costuri Fixe',deconturi:'Deconturi'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   const addLabels={curse:'+ Cursă Nouă',cheltuieli:'+ Cheltuială',reparatii:'+ Reparație',documente:'+ Document',flota:'+ Vehicul',poi:'+ Locație POI'};
   const btn=document.getElementById('addBtn');
-  btn.style.display=page!=='dashboard'?'inline-flex':'none';
+  btn.style.display=(page!=='dashboard'&&page!=='costuri'&&page!=='deconturi')?'inline-flex':'none';
   document.getElementById('addBtnLabel').textContent=addLabels[page]||'+ Adaugă';
   renderPage(page);
 }
 
 async function renderPage(page){
   document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div> Se încarcă...</div>';
-  const r={dashboard:renderDashboard,curse:renderCurse,cheltuieli:renderCheltuieli,reparatii:renderReparatii,documente:renderDocumente,flota:renderFlota,poi:renderPOI};
+  const r={dashboard:renderDashboard,curse:renderCurse,cheltuieli:renderCheltuieli,reparatii:renderReparatii,documente:renderDocumente,flota:renderFlota,poi:renderPOI,costuri:renderCosturi,deconturi:renderDeconturi};
   if(r[page])await r[page]();
 }
 
@@ -495,6 +641,602 @@ async function renderDashboard(){
   },100);
 }
 
+// DECONTURI
+const TRY_KEY='axmtms_curs_try';
+const TRY_DATA_KEY='axmtms_curs_try_data';
+
+async function fetchCursTRY(){
+  try{
+    const res=await fetch('https://api.frankfurter.app/latest?from=EUR&to=TRY',{signal:AbortSignal.timeout(5000)});
+    const json=await res.json();
+    if(json.rates&&json.rates.TRY){
+      localStorage.setItem(TRY_KEY,json.rates.TRY);
+      localStorage.setItem(TRY_DATA_KEY,new Date().toLocaleDateString('ro-RO'));
+      return json.rates.TRY;
+    }
+  }catch(e){}
+  return parseFloat(localStorage.getItem(TRY_KEY))||38.0;
+}
+
+function getCursTRY(){return parseFloat(localStorage.getItem(TRY_KEY))||38.0;}
+
+function calcEurRow(r, cursRon, cursTry){
+  if(r.eur&&parseFloat(r.eur))return parseFloat(r.eur);
+  if(r.ron&&parseFloat(r.ron))return parseFloat(r.ron)/cursRon;
+  if(r.try_sum&&parseFloat(r.try_sum))return parseFloat(r.try_sum)/cursTry;
+  return 0;
+}
+
+async function renderDeconturi(){
+  // Actualizează cursul TRY dacă e nevoie
+  const today_str=new Date().toLocaleDateString('ro-RO');
+  if(localStorage.getItem(TRY_DATA_KEY)!==today_str){
+    document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div> Se actualizează cursurile...</div>';
+    await fetchCursTRY();
+  }
+  const costuri=loadCosturi();
+  const cursRon=costuri.curs_ron||5.0985;
+  const cursTry=getCursTRY();
+
+  // Încarcă lista deconturi din Supabase
+  const{data:deconturi}=await sb.from('deconturi').select('*').order('numar_ordine',{ascending:false});
+  const lista=deconturi||[];
+
+  // Încarcă curse pentru selectori
+  const{data:curse}=await sb.from('curse').select('id,origine,destinatie,data_plecare,camion,sofer').order('data_plecare',{ascending:false}).limit(50);
+
+  document.getElementById('content').innerHTML=
+  // Header cursuri
+  '<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">'+
+  '<div class="card" style="flex:1;min-width:150px;padding:12px 16px">'+
+  '<div class="card-label">Curs RON/EUR (BNR)</div>'+
+  '<div style="font-size:18px;font-weight:700;color:var(--blue)">'+cursRon.toFixed(4)+'</div>'+
+  '</div>'+
+  '<div class="card" style="flex:1;min-width:180px;padding:12px 16px">'+
+  '<div class="card-label">Curs TRY/EUR</div>'+
+  '<div style="font-size:18px;font-weight:700;color:var(--orange)">'+cursTry.toFixed(2)+' TRY = 1 EUR</div>'+
+  '<div style="font-size:11px;color:var(--text-muted)">'+( localStorage.getItem(TRY_DATA_KEY)||'—')+' <a href="#" onclick="refreshTRY()" style="color:var(--blue)">🔄</a></div>'+
+  '</div>'+
+  '<div style="display:flex;align-items:center">'+
+  '<button class="btn btn-primary" onclick="deschideDecontNou()" style="white-space:nowrap">+ Decont Nou</button>'+
+  '</div>'+
+  '</div>'+
+
+  // Lista deconturi
+  '<div class="table-card">'+
+  '<div class="table-header"><h2>Deconturi ('+lista.length+')</h2></div>'+
+  (lista.length===0?'<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>Niciun decont. Apasă "+ Decont Nou".</p></div>':
+  '<table><thead><tr><th>Nr.</th><th>Data</th><th>Camion</th><th>Șofer</th><th>Cursă Tur</th><th>Cursă Retur</th><th>Total EUR</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>'+
+  lista.map(d=>{
+    const cursaTur=(curse||[]).find(c=>c.id===d.cursa_tur_id);
+    const cursaRetur=(curse||[]).find(c=>c.id===d.cursa_retur_id);
+    return '<tr>'+
+    '<td><strong style="font-family:\'JetBrains Mono\',monospace">#'+String(d.numar_ordine).padStart(3,'0')+'</strong></td>'+
+    '<td style="font-size:12px;font-family:\'JetBrains Mono\',monospace">'+formatDate(d.data_decont)+'</td>'+
+    '<td>'+(d.camion||'—')+'</td>'+
+    '<td>'+(d.sofer||'—')+'</td>'+
+    '<td style="font-size:12px">'+(cursaTur?cursaTur.origine+'→'+cursaTur.destinatie:'—')+'</td>'+
+    '<td style="font-size:12px">'+(cursaRetur?cursaRetur.origine+'→'+cursaRetur.destinatie:'—')+'</td>'+
+    '<td class="profit-negative">&#8364;'+parseFloat(d.total_transformat||0).toLocaleString('ro-RO',{minimumFractionDigits:2})+'</td>'+
+    '<td><span class="badge badge-'+(d.status==='Finalizat'?'green':'blue')+'">'+( d.status||'Draft')+'</span></td>'+
+    '<td><div class="actions">'+
+    '<button class="action-btn" onclick="deschideDecont(\''+d.id+'\')" title="Deschide/Editează" style="color:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
+    '<button class="action-btn delete" onclick="stergeDecont(\''+d.id+'\')">'+deleteSVG()+'</button>'+
+    '</div></td>'+
+    '</tr>';
+  }).join('')+'</tbody></table>')+'</div>';
+}
+
+async function deschideDecontNou(){
+  const costuri=loadCosturi();
+  const cursRon=costuri.curs_ron||5.0985;
+  const cursTry=getCursTRY();
+  const{data:curse}=await sb.from('curse').select('id,origine,destinatie,data_plecare,camion,sofer').order('data_plecare',{ascending:false}).limit(50);
+  const optCurse='<option value="">— Selectează —</option>'+( curse||[]).map(c=>'<option value="'+c.id+'">'+formatDate(c.data_plecare)+' — '+(c.origine||'')+'→'+(c.destinatie||'')+' ('+(c.camion||'')+' / '+(c.sofer||'')+')</option>').join('');
+
+  document.getElementById('modalTitle').textContent='Decont Nou';
+  document.getElementById('modalBody').innerHTML=deccontFormHTML(null, optCurse, [], cursRon, cursTry);
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').dataset.mode='decont_nou';
+  document.querySelector('.modal-footer').style.display='none';
+
+  // Lărgim modalul pentru tabel
+  document.querySelector('.modal').style.width='900px';
+  document.querySelector('.modal').style.maxWidth='98vw';
+}
+
+async function deschideDecont(id){
+  const{data:d}=await sb.from('deconturi').select('*').eq('id',id).single();
+  if(!d)return;
+  const costuri=loadCosturi();
+  const cursRon=d.curs_ron||costuri.curs_ron||5.0985;
+  const cursTry=d.curs_try||getCursTRY();
+  const randuri=d.randuri||[];
+  const{data:curse}=await sb.from('curse').select('id,origine,destinatie,data_plecare,camion,sofer').order('data_plecare',{ascending:false}).limit(50);
+  const optCurse='<option value="">— Selectează —</option>'+( curse||[]).map(c=>'<option value="'+c.id+'"'+(c.id===d.cursa_tur_id||c.id===d.cursa_retur_id?' selected':'')+'>'+formatDate(c.data_plecare)+' — '+(c.origine||'')+'→'+(c.destinatie||'')+' ('+(c.camion||'')+' / '+(c.sofer||'')+')</option>').join('');
+
+  document.getElementById('modalTitle').textContent='Decont #'+String(d.numar_ordine).padStart(3,'0');
+  document.getElementById('modalBody').innerHTML=deccontFormHTML(d, optCurse, randuri, cursRon, cursTry);
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').dataset.mode='decont_edit';
+  document.getElementById('modalOverlay').dataset.decontId=id;
+  document.querySelector('.modal-footer').style.display='none';
+  document.querySelector('.modal').style.width='900px';
+  document.querySelector('.modal').style.maxWidth='98vw';
+}
+
+function deccontFormHTML(d, optCurse, randuri, cursRon, cursTry){
+  const statusOpt=['Draft','Finalizat'].map(s=>'<option'+(d&&d.status===s?' selected':'')+'>'+s+'</option>').join('');
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'+
+  '<div class="form-group"><label>Data Decont</label><input type="date" id="dec_data" value="'+(d&&d.data_decont?d.data_decont:today())+'"></div>'+
+  '<div class="form-group"><label>Status</label><select id="dec_status">'+statusOpt+'</select></div>'+
+  '<div class="form-group"><label>Camion</label><input id="dec_camion" value="'+(d&&d.camion?d.camion:'')+'" placeholder="ex: AG 37 AGL"></div>'+
+  '<div class="form-group"><label>Șofer</label><input id="dec_sofer" value="'+(d&&d.sofer?d.sofer:'')+'" placeholder="Numele șoferului"></div>'+
+  '<div class="form-group"><label>Cursă Tur</label><select id="dec_tur">'+optCurse.replace('value="'+(d&&d.cursa_tur_id?d.cursa_tur_id:'')+'">','value="'+(d&&d.cursa_tur_id?d.cursa_tur_id:'')+'" selected>')+'</select></div>'+
+  '<div class="form-group"><label>Cursă Retur</label><select id="dec_retur">'+optCurse.replace('value="'+(d&&d.cursa_retur_id?d.cursa_retur_id:'')+'">','value="'+(d&&d.cursa_retur_id?d.cursa_retur_id:'')+'" selected>')+'</select></div>'+
+  '</div>'+
+  '<div style="display:flex;gap:10px;margin-bottom:10px;font-size:12px;color:var(--text-muted)">'+
+  '<span>Curs RON/EUR: <strong style="color:var(--blue)">'+cursRon.toFixed(4)+'</strong></span>'+
+  '<span>Curs TRY/EUR: <strong style="color:var(--orange)">'+cursTry.toFixed(2)+'</strong></span>'+
+  '</div>'+
+  // Tabel cheltuieli
+  '<div style="overflow-x:auto;margin-bottom:12px">'+
+  '<table style="width:100%;border-collapse:collapse;font-size:12px" id="decRanduriTable">'+
+  '<thead><tr>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;min-width:180px">Tip Cheltuială</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:80px">Nr. KM</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:80px">Nr. Litri</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:90px">RON</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:90px">EUR</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:100px">Lire TR</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:100px">Transf. EUR</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;min-width:120px">Observații</th>'+
+  '<th style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;width:36px"></th>'+
+  '</tr></thead>'+
+  '<tbody id="decRanduriBody">'+
+  (randuri.length>0?randuri.map((r,i)=>decRandHTML(r,i,cursRon,cursTry)).join(''):decRandHTML({},0,cursRon,cursTry))+
+  '</tbody>'+
+  '<tfoot id="decTotals"><tr>'+
+  '<td style="padding:8px 10px;background:#1e3a5f;color:white;font-weight:700;border:1px solid #2a4a7f">TOTAL</td>'+
+  '<td style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;text-align:right" id="tot_km">0</td>'+
+  '<td style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;text-align:right" id="tot_litri">0</td>'+
+  '<td style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;text-align:right" id="tot_ron">0</td>'+
+  '<td style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;text-align:right" id="tot_eur">0</td>'+
+  '<td style="padding:8px 10px;background:#1e3a5f;color:white;border:1px solid #2a4a7f;text-align:right" id="tot_try">0</td>'+
+  '<td style="padding:8px 10px;background:#16a34a;color:white;font-weight:700;border:1px solid #15803d;text-align:right" id="tot_transf">&#8364;0.00</td>'+
+  '<td colspan="2" style="padding:8px 10px;background:#1e3a5f;border:1px solid #2a4a7f"></td>'+
+  '</tr></tfoot>'+
+  '</table></div>'+
+  '<div style="display:flex;gap:8px">'+
+  '<button class="btn btn-secondary" onclick="adaugaRandDecont()" style="font-size:12px">+ Rând</button>'+
+  '<button class="btn btn-primary" onclick="salveazaDecont()" style="font-size:12px">💾 Salvează Decontul</button>'+
+  '</div>';
+}
+
+function decRandHTML(r, i, cursRon, cursTry){
+  const eur=calcEurRow(r,cursRon,cursTry);
+  const inp='padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:\'Inter\',sans-serif;outline:none;width:100%';
+  return '<tr id="decr_'+i+'">'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+'" value="'+(r.tip||'')+'" onchange="updateDecRand('+i+',\'tip\',this.value)" placeholder="ex: Parcare Vamă TR"></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+';text-align:right" type="number" value="'+(r.km||'')+'" onchange="updateDecRand('+i+',\'km\',this.value)"></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+';text-align:right" type="number" value="'+(r.litri||'')+'" onchange="updateDecRand('+i+',\'litri\',this.value)"></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+';text-align:right;color:#ea580c" type="number" value="'+(r.ron||'')+'" onchange="updateDecRand('+i+',\'ron\',this.value)" placeholder="0.00"></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+';text-align:right;color:#2563eb" type="number" value="'+(r.eur||'')+'" onchange="updateDecRand('+i+',\'eur\',this.value)" placeholder="0.00"></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+';text-align:right;color:#7c3aed" type="number" value="'+(r.try_sum||'')+'" onchange="updateDecRand('+i+',\'try_sum\',this.value)" placeholder="0.00"></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb;text-align:right;font-weight:700;color:var(--green)" id="decr_eur_'+i+'">'+( eur>0?'&#8364;'+eur.toFixed(2):'—')+'</td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb"><input style="'+inp+'" value="'+(r.obs||'')+'" onchange="updateDecRand('+i+',\'obs\',this.value)" placeholder="Observații..."></td>'+
+  '<td style="padding:4px 6px;border:1px solid #e5e7eb;text-align:center"><button class="action-btn delete" onclick="stergeRandDecont('+i+')" style="width:24px;height:24px">×</button></td>'+
+  '</tr>';
+}
+
+// State temporar pentru rândurile din modal
+let decRanduriTemp=[];
+
+function updateDecRand(i, field, val){
+  if(!decRanduriTemp[i])decRanduriTemp[i]={};
+  decRanduriTemp[i][field]=val;
+  // Recalculează EUR
+  const costuri=loadCosturi();
+  const eur=calcEurRow(decRanduriTemp[i],costuri.curs_ron||5.0985,getCursTRY());
+  const el=document.getElementById('decr_eur_'+i);
+  if(el)el.innerHTML=eur>0?'&#8364;'+eur.toFixed(2):'—';
+  recalcDecTotals();
+}
+
+function recalcDecTotals(){
+  const costuri=loadCosturi();
+  const cursRon=costuri.curs_ron||5.0985;
+  const cursTry=getCursTRY();
+  const set=el=>id=>{const e=document.getElementById(id);if(e)e.innerHTML=el;};
+  const totKm=decRanduriTemp.reduce((s,r)=>s+(parseFloat(r.km)||0),0);
+  const totLitri=decRanduriTemp.reduce((s,r)=>s+(parseFloat(r.litri)||0),0);
+  const totRon=decRanduriTemp.reduce((s,r)=>s+(parseFloat(r.ron)||0),0);
+  const totEur=decRanduriTemp.reduce((s,r)=>s+(parseFloat(r.eur)||0),0);
+  const totTry=decRanduriTemp.reduce((s,r)=>s+(parseFloat(r.try_sum)||0),0);
+  const totTransf=decRanduriTemp.reduce((s,r)=>s+calcEurRow(r,cursRon,cursTry),0);
+  const g=id=>document.getElementById(id);
+  if(g('tot_km'))g('tot_km').textContent=totKm.toLocaleString('ro-RO');
+  if(g('tot_litri'))g('tot_litri').textContent=totLitri.toLocaleString('ro-RO',{minimumFractionDigits:2});
+  if(g('tot_ron'))g('tot_ron').textContent=totRon.toLocaleString('ro-RO',{minimumFractionDigits:2});
+  if(g('tot_eur'))g('tot_eur').textContent=totEur.toLocaleString('ro-RO',{minimumFractionDigits:2});
+  if(g('tot_try'))g('tot_try').textContent=totTry.toLocaleString('ro-RO',{minimumFractionDigits:2});
+  if(g('tot_transf'))g('tot_transf').innerHTML='&#8364;'+totTransf.toLocaleString('ro-RO',{minimumFractionDigits:2});
+}
+
+function adaugaRandDecont(){
+  decRanduriTemp.push({tip:'',km:'',litri:'',ron:'',eur:'',try_sum:'',obs:''});
+  const i=decRanduriTemp.length-1;
+  const costuri=loadCosturi();
+  const tbody=document.getElementById('decRanduriBody');
+  if(tbody){
+    const tr=document.createElement('tr');
+    tr.id='decr_'+i;
+    const html=decRandHTML(decRanduriTemp[i],i,costuri.curs_ron||5.0985,getCursTRY());
+    const tmp=document.createElement('tbody');
+    tmp.innerHTML=html;
+    tbody.appendChild(tmp.firstChild);
+  }
+}
+
+function stergeRandDecont(i){
+  decRanduriTemp.splice(i,1);
+  // Re-render rânduri
+  const costuri=loadCosturi();
+  const tbody=document.getElementById('decRanduriBody');
+  if(tbody){
+    tbody.innerHTML=decRanduriTemp.map((r,idx)=>decRandHTML(r,idx,costuri.curs_ron||5.0985,getCursTRY())).join('');
+  }
+  recalcDecTotals();
+}
+
+async function salveazaDecont(){
+  const g=id=>document.getElementById(id)?.value||'';
+  const costuri=loadCosturi();
+  const cursRon=costuri.curs_ron||5.0985;
+  const cursTry=getCursTRY();
+
+  // Citește rândurile din DOM (ce a tastat utilizatorul)
+  const tbody=document.getElementById('decRanduriBody');
+  const rows=[];
+  if(tbody){
+    tbody.querySelectorAll('tr').forEach((tr,i)=>{
+      const inputs=tr.querySelectorAll('input');
+      if(inputs.length>=8){
+        rows.push({
+          tip:inputs[0].value,km:inputs[1].value,litri:inputs[2].value,
+          ron:inputs[3].value,eur:inputs[4].value,try_sum:inputs[5].value,
+          obs:inputs[6].value
+        });
+      }
+    });
+  }
+
+  const totTransf=rows.reduce((s,r)=>s+calcEurRow(r,cursRon,cursTry),0);
+  const totRon=rows.reduce((s,r)=>s+(parseFloat(r.ron)||0),0);
+  const totEur=rows.reduce((s,r)=>s+(parseFloat(r.eur)||0),0);
+  const totTry=rows.reduce((s,r)=>s+(parseFloat(r.try_sum)||0),0);
+
+  const payload={
+    data_decont:g('dec_data'),
+    camion:g('dec_camion'),
+    sofer:g('dec_sofer'),
+    cursa_tur_id:g('dec_tur')||null,
+    cursa_retur_id:g('dec_retur')||null,
+    status:g('dec_status'),
+    curs_ron:cursRon,
+    curs_try:cursTry,
+    randuri:rows,
+    total_ron:totRon,
+    total_eur:totEur,
+    total_try:totTry,
+    total_transformat:totTransf,
+  };
+
+  // Curăță uuid-uri goale
+  if(!payload.cursa_tur_id)delete payload.cursa_tur_id;
+  if(!payload.cursa_retur_id)delete payload.cursa_retur_id;
+
+  const mode=document.getElementById('modalOverlay').dataset.mode;
+  const decontId=document.getElementById('modalOverlay').dataset.decontId;
+  let error;
+  if(mode==='decont_edit'&&decontId){
+    ({error}=await sb.from('deconturi').update(payload).eq('id',decontId));
+  } else {
+    ({error}=await sb.from('deconturi').insert([payload]));
+  }
+
+  if(error){alert('Eroare la salvare: '+error.message);return;}
+  document.getElementById('modalOverlay').style.display='none';
+  document.querySelector('.modal').style.width='580px';
+  decRanduriTemp=[];
+  renderDeconturi();
+}
+
+async function stergeDecont(id){
+  if(!confirm('Ștergi acest decont definitiv?'))return;
+  await sb.from('deconturi').delete().eq('id',id);
+  renderDeconturi();
+}
+
+async function refreshTRY(){
+  localStorage.removeItem(TRY_DATA_KEY);
+  renderDeconturi();
+}
+
+// COSTURI FIXE
+const COSTURI_KEY='axmtms_costuri_fixe';
+const CURS_KEY='axmtms_curs_ron';
+const CURS_DATA_KEY='axmtms_curs_data'; // data ultimei actualizări
+
+async function fetchCursBNR(){
+  // Încearcă mai multe surse în ordine
+  const surse=[
+    // Sursă 1: corsproxy.io
+    async()=>{
+      const res=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://www.bnr.ro/nbrfxrates.xml'),{signal:AbortSignal.timeout(5000)});
+      const xml=await res.text();
+      return parseEurFromXML(xml);
+    },
+    // Sursă 2: allorigins
+    async()=>{
+      const res=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent('https://www.bnr.ro/nbrfxrates.xml'),{signal:AbortSignal.timeout(5000)});
+      const json=await res.json();
+      return parseEurFromXML(json.contents);
+    },
+    // Sursă 3: frankfurter.app (EUR/RON invers)
+    async()=>{
+      const res=await fetch('https://api.frankfurter.app/latest?from=EUR&to=RON',{signal:AbortSignal.timeout(5000)});
+      const json=await res.json();
+      return json.rates&&json.rates.RON?json.rates.RON:null;
+    },
+  ];
+
+  for(const sursa of surse){
+    try{
+      const rate=await sursa();
+      if(rate&&rate>4&&rate<7){
+        const c=loadCosturi();
+        c.curs_ron=parseFloat(rate.toFixed(4));
+        saveCosturi(c);
+        localStorage.setItem(CURS_DATA_KEY,new Date().toLocaleDateString('ro-RO'));
+        return rate;
+      }
+    }catch(e){continue;}
+  }
+  return null;
+}
+
+function parseEurFromXML(xml){
+  try{
+    const parser=new DOMParser();
+    const doc=parser.parseFromString(xml,'text/xml');
+    const rates=doc.querySelectorAll('Rate');
+    let eurRate=null;
+    rates.forEach(r=>{if(r.getAttribute('currency')==='EUR')eurRate=parseFloat(r.textContent);});
+    return eurRate;
+  }catch(e){return null;}
+}
+
+function getCosturiDefault(){
+  return {
+    curs_ron: 5.0985,
+    per_camion: [
+      {id:'rca', label:'RCA', suma_ron:6200, tip:'anual'},
+      {id:'cmr', label:'Asigurare CMR', suma_eur:390, tip:'anual'},
+      {id:'rovigneta', label:'Rovinietă RO', suma_ron:727, tip:'lunar'},
+      {id:'impozit', label:'Impozit Vehicul', suma_ron:2280, tip:'anual'},
+      {id:'itp_camion', label:'ITP Camion', suma_ron:300, tip:'anual'},
+      {id:'itp_remorca', label:'ITP Remorcă', suma_ron:300, tip:'anual'},
+      {id:'gps', label:'GPS CargoTrack', suma_eur:16, tip:'lunar'},
+      {id:'amortizare', label:'Amortizare', suma_eur:100, tip:'lunar'},
+    ],
+    per_firma: [
+      {id:'contabilitate', label:'Contabilitate', suma_ron:500, tip:'lunar'},
+    ]
+  };
+}
+
+function loadCosturi(){
+  try{return JSON.parse(localStorage.getItem(COSTURI_KEY))||getCosturiDefault();}
+  catch(e){return getCosturiDefault();}
+}
+
+function saveCosturi(c){localStorage.setItem(COSTURI_KEY,JSON.stringify(c));}
+
+function calcLunarEur(item, curs){
+  const eur = item.suma_eur || (item.suma_ron ? item.suma_ron/curs : 0);
+  return item.tip==='anual' ? eur/12 : eur;
+}
+
+function getTotalCosturiFixeLunare(){
+  const c=loadCosturi();
+  const perCamion=c.per_camion.reduce((s,i)=>s+calcLunarEur(i,c.curs_ron),0);
+  const perFirma=c.per_firma.reduce((s,i)=>s+calcLunarEur(i,c.curs_ron),0);
+  // Număr camioane din flotă
+  return {perCamion, perFirma, total3: perCamion*3+perFirma};
+}
+
+async function renderCosturi(){
+  const c=loadCosturi();
+  const nrCamioane=3;
+
+  // Fetch curs BNR dacă nu a fost actualizat azi
+  const lastUpdate=localStorage.getItem(CURS_DATA_KEY);
+  const today=new Date().toLocaleDateString('ro-RO');
+  if(lastUpdate!==today){
+    document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div> Se actualizează cursul BNR...</div>';
+    await fetchCursBNR();
+  }
+
+  const cFresh=loadCosturi();
+  const totalPerCamion=cFresh.per_camion.reduce((s,i)=>s+calcLunarEur(i,cFresh.curs_ron),0);
+  const totalPerFirma=cFresh.per_firma.reduce((s,i)=>s+calcLunarEur(i,cFresh.curs_ron),0);
+  const totalFlota=totalPerCamion*nrCamioane+totalPerFirma;
+  const cursData=localStorage.getItem(CURS_DATA_KEY)||'—';
+
+  document.getElementById('content').innerHTML=`
+    <div class="cards-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="card card-blue">
+        <div class="card-label">Cost Fix / Camion / Lună</div>
+        <div class="card-value">&#8364;${Math.round(totalPerCamion)}</div>
+        <div class="card-sub">Fără costuri firmă</div>
+      </div>
+      <div class="card card-orange">
+        <div class="card-label">Total Flotă / Lună</div>
+        <div class="card-value">&#8364;${Math.round(totalFlota)}</div>
+        <div class="card-sub">${nrCamioane} camioane + firmă</div>
+      </div>
+      <div class="card card-purple">
+        <div class="card-label">Curs RON/EUR — BNR</div>
+        <div class="card-value" id="cursDisplay">${cFresh.curs_ron.toFixed(4)}</div>
+        <div class="card-sub">
+          Actualizat: ${cursData}
+          &nbsp;·&nbsp;
+          <a href="#" onclick="refreshCurs()" style="color:var(--blue);font-size:12px">🔄 Actualizează</a>
+          &nbsp;·&nbsp;
+          <a href="#" onclick="editCurs()" style="color:var(--muted);font-size:12px">Editează manual</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+
+      <!-- PER CAMION -->
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Costuri Fixe per Camion / Lună</h2>
+          <button class="btn btn-secondary" onclick="adaugaCostPerCamion()" style="font-size:12px;padding:5px 12px">+ Adaugă</button>
+        </div>
+        <table>
+          <thead><tr><th>Denumire</th><th>Sumă Originală</th><th>Periodicitate</th><th>EUR/Lună</th><th></th></tr></thead>
+          <tbody>
+          ${cFresh.per_camion.map((item,i)=>`
+            <tr>
+              <td><strong>${item.label}</strong></td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
+                ${item.suma_ron ? Math.round(item.suma_ron)+' RON' : item.suma_eur+' EUR'}
+              </td>
+              <td><span class="badge ${item.tip==='anual'?'badge-blue':'badge-green'}">${item.tip==='anual'?'Anual':'Lunar'}</span></td>
+              <td class="profit-positive">&#8364;${calcLunarEur(item,cFresh.curs_ron).toFixed(0)}</td>
+              <td><div class="actions">
+                <button class="action-btn" onclick="editCostItem('camion',${i})" title="Editează">${editSVG()}</button>
+                <button class="action-btn delete" onclick="deleteCostItem('camion',${i})" title="Șterge">${deleteSVG()}</button>
+              </div></td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f9fafb">
+              <td colspan="3" style="padding:10px 16px;font-weight:700;font-size:13px">TOTAL / Camion / Lună</td>
+              <td style="padding:10px 16px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">&#8364;${Math.round(totalPerCamion)}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- PER FIRMA -->
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Costuri Firmă / Lună</h2>
+          <button class="btn btn-secondary" onclick="adaugaCostPerFirma()" style="font-size:12px;padding:5px 12px">+ Adaugă</button>
+        </div>
+        <table>
+          <thead><tr><th>Denumire</th><th>Sumă</th><th>EUR/Lună</th><th></th></tr></thead>
+          <tbody>
+          ${cFresh.per_firma.map((item,i)=>`
+            <tr>
+              <td><strong>${item.label}</strong></td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
+                ${item.suma_ron ? Math.round(item.suma_ron)+' RON' : item.suma_eur+' EUR'}
+              </td>
+              <td class="profit-positive">&#8364;${calcLunarEur(item,cFresh.curs_ron).toFixed(0)}</td>
+              <td><div class="actions">
+                <button class="action-btn" onclick="editCostItem('firma',${i})">${editSVG()}</button>
+                <button class="action-btn delete" onclick="deleteCostItem('firma',${i})">${deleteSVG()}</button>
+              </div></td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f9fafb">
+              <td colspan="2" style="padding:10px 16px;font-weight:700;font-size:13px">TOTAL / Lună</td>
+              <td style="padding:10px 16px;font-weight:700;color:var(--blue);font-family:'JetBrains Mono',monospace">&#8364;${Math.round(totalPerFirma)}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div style="margin:16px 20px;padding:14px;background:#0f1117;border-radius:10px">
+          <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Total Flotă / Lună</div>
+          <div style="font-size:22px;font-weight:700;color:white">&#8364;${Math.round(totalFlota)}</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:4px">${nrCamioane} × &#8364;${Math.round(totalPerCamion)} + &#8364;${Math.round(totalPerFirma)} firmă</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function refreshCurs(){
+  localStorage.removeItem(CURS_DATA_KEY); // Forțează re-fetch
+  renderCosturi();
+}
+
+function editCurs(){
+  const c=loadCosturi();
+  const val=prompt('Curs RON/EUR curent:',c.curs_ron);
+  if(!val)return;
+  const nou=parseFloat(val);
+  if(isNaN(nou)||nou<=0){alert('Curs invalid.');return;}
+  c.curs_ron=nou;
+  saveCosturi(c);
+  renderCosturi();
+}
+
+function costItemForm(item){
+  return `<div class="form-row full"><div class="form-group"><label>Denumire</label><input id="ci_label" value="${item?item.label:''}"></div></div>
+  <div class="form-row">
+    <div class="form-group"><label>Sumă</label><input type="number" id="ci_suma" value="${item?(item.suma_ron||item.suma_eur||''):''}"></div>
+    <div class="form-group"><label>Monedă</label><select id="ci_moneda"><option value="ron" ${item&&item.suma_ron?'selected':''}>RON</option><option value="eur" ${item&&item.suma_eur?'selected':''}>EUR</option></select></div>
+  </div>
+  <div class="form-row full"><div class="form-group"><label>Periodicitate</label>
+    <select id="ci_tip"><option value="lunar" ${item&&item.tip==='lunar'?'selected':''}>Lunar</option><option value="anual" ${item&&item.tip==='anual'?'selected':''}>Anual (împărțit la 12)</option></select>
+  </div></div>`;
+}
+
+function adaugaCostPerCamion(){
+  if(!isAdmin())return;
+  document.getElementById('modalTitle').textContent='Cost Fix Nou — Per Camion';
+  document.getElementById('modalBody').innerHTML=costItemForm(null);
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').dataset.mode='add_camion';
+}
+
+function adaugaCostPerFirma(){
+  if(!isAdmin())return;
+  document.getElementById('modalTitle').textContent='Cost Fix Nou — Per Firmă';
+  document.getElementById('modalBody').innerHTML=costItemForm(null);
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').dataset.mode='add_firma';
+}
+
+function editCostItem(tip,idx){
+  if(!isAdmin())return;
+  const c=loadCosturi();
+  const item=tip==='camion'?c.per_camion[idx]:c.per_firma[idx];
+  document.getElementById('modalTitle').textContent='Editează Cost Fix';
+  document.getElementById('modalBody').innerHTML=costItemForm(item);
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').dataset.mode='edit_'+tip+'_'+idx;
+}
+
+function deleteCostItem(tip,idx){
+  if(!isAdmin())return;
+  if(!confirm('Ștergi această înregistrare?'))return;
+  const c=loadCosturi();
+  if(tip==='camion')c.per_camion.splice(idx,1);
+  else c.per_firma.splice(idx,1);
+  saveCosturi(c);
+  renderCosturi();
+}
+
 function statusColor(s){return{'Planificată':'yellow','La Încărcare':'orange','În Tranzit':'blue','La Vamă Export':'orange','La Vamă Import':'orange','La Descărcare':'blue','Finalizată':'green','Anulată':'red'}[s]||'blue';}
 
 // POI
@@ -581,6 +1323,7 @@ async function renderCurse(){
       '<td class="profit-positive">&#8364;'+parseFloat(c.venit||0).toLocaleString('ro-RO')+'</td>'+
       '<td class="'+(profit>=0?'profit-positive':'profit-negative')+'">&#8364;'+profit.toLocaleString('ro-RO')+'</td>'+
       '<td><div class="actions">'+
+      '<button class="action-btn" onclick="openCheltuieliCursa(\''+c.id+'\',\''+( c.origine||'').replace(/'/g,'')+'→'+(c.destinatie||'').replace(/'/g,'')+'\')" title="Cheltuieli cursă" style="color:var(--orange)">'+chelSVG()+'</button>'+
       '<button class="action-btn" onclick=\'editItem("curse",'+data+')\'>'+editSVG()+'</button>'+
       '<button class="action-btn delete" onclick="deleteItem(\'curse\',\''+c.id+'\')">'+deleteSVG()+'</button>'+
       '</div></td>'+
@@ -642,10 +1385,105 @@ async function renderFlota(){
 // SVG HELPERS
 function editSVG(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';}
 function deleteSVG(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';}
+function chelSVG(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';}
+
+// CHELTUIELI PER CURSĂ
+async function openCheltuieliCursa(cursaId, ruta){
+  // Construiește modalul mare
+  document.getElementById('modalTitle').textContent='Cheltuieli — '+ruta;
+  document.getElementById('modalBody').innerHTML='<div class="loading"><div class="spinner"></div> Se încarcă...</div>';
+  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').dataset.mode='cheltuieli_cursa';
+
+  // Ascunde butonul Salvează — are propriile butoane
+  document.querySelector('.modal-footer').style.display='none';
+
+  await renderCheltuieliCursa(cursaId);
+}
+
+async function renderCheltuieliCursa(cursaId){
+  const{data}=await sb.from('cheltuieli').select('*').eq('cursa_id',cursaId).order('created_at',{ascending:false});
+  const items=data||[];
+  const total=items.reduce((s,i)=>s+(parseFloat(i.suma)||0),0);
+  const tipuri=['Parcare','Taxă Drum','Amendă','Reparație Urgentă','Combustibil Suplimentar','Cazare/Masă','Altele'];
+
+  document.getElementById('modalBody').innerHTML=
+    // Lista cheltuieli existente
+    (items.length===0?
+      '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Nicio cheltuială adăugată pe această cursă.</div>':
+      '<div style="margin-bottom:16px">'+
+      '<table style="width:100%;border-collapse:collapse">'+
+      '<thead><tr>'+
+      '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;background:#f9fafb;border-bottom:1px solid var(--border)">Data</th>'+
+      '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;background:#f9fafb;border-bottom:1px solid var(--border)">Tip</th>'+
+      '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;background:#f9fafb;border-bottom:1px solid var(--border)">Descriere</th>'+
+      '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;background:#f9fafb;border-bottom:1px solid var(--border)">Sumă</th>'+
+      '<th style="padding:8px 12px;background:#f9fafb;border-bottom:1px solid var(--border)"></th>'+
+      '</tr></thead><tbody>'+
+      items.map(i=>'<tr>'+
+        '<td style="padding:10px 12px;font-size:12px;font-family:\'JetBrains Mono\',monospace;border-bottom:1px solid #f3f4f6">'+formatDate(i.data)+'</td>'+
+        '<td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #f3f4f6"><span class="badge badge-orange">'+i.tip+'</span></td>'+
+        '<td style="padding:10px 12px;font-size:13px;color:var(--text-muted);border-bottom:1px solid #f3f4f6">'+(i.descriere||'—')+'</td>'+
+        '<td style="padding:10px 12px;font-size:13px;font-weight:600;color:var(--red);border-bottom:1px solid #f3f4f6">-&#8364;'+parseFloat(i.suma||0).toLocaleString('ro-RO')+'</td>'+
+        '<td style="padding:10px 12px;border-bottom:1px solid #f3f4f6"><button class="action-btn delete" onclick="deleteCheltuialaCursa(\''+i.id+'\',\''+cursaId+'\')">'+deleteSVG()+'</button></td>'+
+      '</tr>').join('')+
+      '</tbody></table>'+
+      '<div style="padding:10px 12px;background:#f9fafb;border-top:2px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+      '<span style="font-size:13px;font-weight:600">Total Cheltuieli Cursă</span>'+
+      '<span style="font-size:15px;font-weight:700;color:var(--red)">-&#8364;'+total.toLocaleString('ro-RO')+'</span>'+
+      '</div></div>')+
+
+    // Formular adăugare
+    '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px">'+
+    '<div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">+ Adaugă Cheltuială Nouă</div>'+
+    '<div class="form-row">'+
+    '<div class="form-group"><label>Data</label><input type="date" id="cc_data" value="'+today()+'"></div>'+
+    '<div class="form-group"><label>Tip</label><select id="cc_tip">'+tipuri.map(t=>'<option>'+t+'</option>').join('')+'</select></div>'+
+    '</div>'+
+    '<div class="form-row">'+
+    '<div class="form-group"><label>Sumă (EUR)</label><input type="number" id="cc_suma" placeholder="0" min="0" step="0.01"></div>'+
+    '<div class="form-group"><label>Descriere</label><input id="cc_desc" placeholder="Detalii..."></div>'+
+    '</div>'+
+    '<div class="form-group" style="margin-bottom:0">'+
+    '<label>Camion</label><input id="cc_camion" placeholder="ex: AG 37 AGL">'+
+    '</div>'+
+    '<button onclick="saveCheltuialaCursa(\''+cursaId+'\')" class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center">Salvează Cheltuială</button>'+
+    '</div>';
+
+  // Pre-fill camion din cursă
+  try{
+    const{data:cd}=await sb.from('curse').select('camion').eq('id',cursaId).single();
+    if(cd&&document.getElementById('cc_camion'))document.getElementById('cc_camion').value=cd.camion||'';
+  }catch(e){}
+}
+
+async function saveCheltuialaCursa(cursaId){
+  const data=document.getElementById('cc_data')?.value;
+  const tip=document.getElementById('cc_tip')?.value;
+  const suma=parseFloat(document.getElementById('cc_suma')?.value)||0;
+  const desc=document.getElementById('cc_desc')?.value||'';
+  const camion=document.getElementById('cc_camion')?.value||'';
+  if(!suma){alert('Introdu suma cheltuielii.');return;}
+  const{error}=await sb.from('cheltuieli').insert([{data,tip,suma,descriere:desc,camion,cursa_id:cursaId}]);
+  if(error){alert('Eroare: '+error.message);return;}
+  // Refresh lista
+  await renderCheltuieliCursa(cursaId);
+}
+
+async function deleteCheltuialaCursa(id,cursaId){
+  if(!confirm('Ștergi această cheltuială?'))return;
+  await sb.from('cheltuieli').delete().eq('id',id);
+  await renderCheltuieliCursa(cursaId);
+}
 
 // MODALS
 function openAddModal(){
   if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să adaugi înregistrări.');return;}
+  document.querySelector('.modal-footer').style.display='flex';
+  document.querySelector('.modal').style.width='580px';
+  decRanduriTemp=[];
+  delete document.getElementById('modalOverlay').dataset.mode;
+  delete document.getElementById('modalOverlay').dataset.decontId;
   editingId=null;
   const forms={curse:cursaForm(null),cheltuieli:cheltuieliForm(null),reparatii:reparatiiForm(null),documente:documenteForm(null),flota:flotaForm(null),poi:poiForm(null)};
   const titles={curse:'Cursă Nouă',cheltuieli:'Cheltuială Nouă',reparatii:'Reparație Nouă',documente:'Document Nou',flota:'Vehicul Nou',poi:'Locație POI Nouă'};
@@ -656,6 +1494,11 @@ function openAddModal(){
 
 function editItem(table,data){
   if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să modifici înregistrări.');return;}
+  document.querySelector('.modal-footer').style.display='flex';
+  document.querySelector('.modal').style.width='580px';
+  decRanduriTemp=[];
+  delete document.getElementById('modalOverlay').dataset.mode;
+  delete document.getElementById('modalOverlay').dataset.decontId;
   editingId=data.id;
   const forms={curse:cursaForm(data),cheltuieli:cheltuieliForm(data),reparatii:reparatiiForm(data),documente:documenteForm(data),flota:flotaForm(data),poi:poiForm(data)};
   const titles={curse:'Editează Cursă',cheltuieli:'Editează Cheltuială',reparatii:'Editează Reparație',documente:'Editează Document',flota:'Editează Vehicul',poi:'Editează Locație POI'};
@@ -672,6 +1515,27 @@ function closeModal(e){
 }
 
 async function saveModal(){
+  // Costuri fixe — salvare locală
+  const mode=document.getElementById('modalOverlay').dataset.mode||'';
+  if(mode.startsWith('add_')||mode.startsWith('edit_')){
+    const label=document.getElementById('ci_label')?.value?.trim();
+    const suma=parseFloat(document.getElementById('ci_suma')?.value)||0;
+    const moneda=document.getElementById('ci_moneda')?.value;
+    const tip=document.getElementById('ci_tip')?.value;
+    if(!label||!suma){alert('Completează denumirea și suma.');return;}
+    const item={id:'c_'+Date.now(),label,tip};
+    if(moneda==='ron')item.suma_ron=suma; else item.suma_eur=suma;
+    const c=loadCosturi();
+    if(mode==='add_camion')c.per_camion.push(item);
+    else if(mode==='add_firma')c.per_firma.push(item);
+    else if(mode.startsWith('edit_camion_')){const idx=parseInt(mode.split('_')[2]);c.per_camion[idx]={...c.per_camion[idx],...item};}
+    else if(mode.startsWith('edit_firma_')){const idx=parseInt(mode.split('_')[2]);c.per_firma[idx]={...c.per_firma[idx],...item};}
+    saveCosturi(c);
+    document.getElementById('modalOverlay').style.display='none';
+    delete document.getElementById('modalOverlay').dataset.mode;
+    renderCosturi();
+    return;
+  }
   const g=id=>document.getElementById(id)?document.getElementById(id).value:'';
   let payload={},table=currentPage;
   if(table==='curse')payload={data_plecare:g('f_data_plecare'),origine:g('f_origine'),destinatie:g('f_destinatie'),puncte_intermediare:JSON.stringify(getWaypoints()),camion:g('f_camion'),remorca:g('f_remorca'),sofer:g('f_sofer'),client:g('f_client'),status:g('f_status'),venit:parseFloat(g('f_venit'))||0,cost_total:parseFloat(g('f_cost_total'))||0,distanta_km:parseFloat(g('f_distanta'))||0,greutate_tone:parseFloat(g('f_greutate'))||20,note:g('f_note')};
@@ -860,7 +1724,13 @@ function doSetup(){
 function isAdmin(){return currentUser==='admin';}
 
 // START
-async function init(){await loadPOICache();showPage('dashboard');}
+async function init(){
+  // Reset notificare pt test - sterge linia de mai jos dupa ce testezi
+  // localStorage.removeItem('axmtms_notif_last');
+  await loadPOICache();
+  await checkNotificari();
+  showPage('dashboard');
+}
 init();
 </script>
 </body>
