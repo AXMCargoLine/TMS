@@ -282,7 +282,7 @@ function cursaCardHTML(c){
       </div>
       <span class="cursa-expand-icon">▾</span>
     </div>
-    <div class="cursa-detalii" id="detalii_${c.id}">
+    <div class="cursa-detalii" id="detalii_${c.id}" onclick="event.stopPropagation()">
       ${detaliiHTML(c)}
     </div>
   </div>`;
