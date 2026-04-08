@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AXM Mobile">
+<meta name="theme-color" content="#0f1117">
+<title>AXM Cargo — Mobile</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f7;--dark:#0f1117;--white:#fff;--border:#e5e7eb;
+  --text:#111827;--muted:#6b7280;
+  --blue:#2563eb;--blue-light:#eff6ff;
+  --green:#16a34a;--green-light:#f0fdf4;
+  --orange:#ea580c;--orange-light:#fff7ed;
+  --red:#dc2626;--red-light:#fef2f2;
+  --yellow:#d97706;--yellow-light:#fffbeb;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;}
+
+/* LOGIN */
+.login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--dark);}
+.login-logo{width:64px;height:64px;background:var(--blue);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.login-logo svg{width:32px;height:32px;fill:white;}
+.login-title{color:white;font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;}
+.login-sub{color:#9ca3af;font-size:13px;text-align:center;margin-bottom:28px;}
+.login-card{background:white;border-radius:var(--radius);padding:20px;width:100%;max-width:340px;}
+.login-error{background:var(--red-light);color:var(--red);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+.field-inner{position:relative;display:flex;align-items:center;}
+.field-inner svg{position:absolute;left:11px;width:16px;height:16px;color:var(--muted);pointer-events:none;}
+.field input{width:100%;padding:12px 12px 12px 36px;border:1.5px solid var(--border);border-radius:9px;font-size:15px;font-family:'Inter',sans-serif;background:#f8fafc;outline:none;}
+.field input:focus{border-color:var(--blue);background:white;}
+.eye-btn{position:absolute;right:10px;background:none;border:none;cursor:pointer;padding:4px;color:var(--muted);}
+.btn-login{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:9px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;margin-top:4px;}
+.btn-login:active{opacity:0.85;}
+
+/* APP */
+.app{display:none;flex-direction:column;min-height:100vh;}
+
+/* HEADER */
+.header{background:var(--dark);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-brand{display:flex;align-items:center;gap:9px;}
+.header-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.header-icon svg{width:16px;height:16px;fill:white;}
+.header-title{font-size:14px;font-weight:700;color:white;}
+.header-sub{font-size:10px;color:#9ca3af;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.btn-refresh{background:none;border:1px solid #374151;color:#9ca3af;padding:6px 10px;border-radius:7px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.btn-logout{background:none;border:1px solid #374151;color:#9ca3af;padding:6px 10px;border-radius:7px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;}
+
+/* CONTENT */
+.content{flex:1;padding:12px;}
+
+/* CURSE LIST */
+.curse-list{display:flex;flex-direction:column;gap:10px;}
+.cursa-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border);cursor:pointer;transition:all 0.15s;}
+.cursa-card:active{transform:scale(0.98);}
+.cursa-card-main{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.cursa-card-left{flex:1;}
+.cursa-ruta{font-size:14px;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.cursa-ruta-arrow{color:var(--muted);font-size:12px;}
+.cursa-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.cursa-meta-item{font-size:12px;color:var(--muted);background:#f9fafb;padding:3px 8px;border-radius:20px;border:1px solid var(--border);}
+.cursa-meta-item strong{color:var(--text);}
+.status-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap;margin-left:8px;}
+.cursa-expand-icon{color:var(--muted);font-size:18px;margin-left:8px;transition:transform 0.2s;}
+.cursa-card.expanded .cursa-expand-icon{transform:rotate(180deg);}
+
+/* DETALII CURSA */
+.cursa-detalii{display:none;border-top:1px solid var(--border);padding:14px 16px;background:#fafafa;}
+.cursa-card.expanded .cursa-detalii{display:block;}
+
+.detalii-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.detalii-item{background:white;border-radius:8px;padding:10px 12px;border:1px solid var(--border);}
+.detalii-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;}
+.detalii-value{font-size:13px;font-weight:600;}
+
+/* STATUS BUTTONS */
+.status-section{margin-bottom:14px;}
+.status-section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.status-btn{padding:10px 8px;border-radius:9px;border:2px solid transparent;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;}
+.status-btn:active{transform:scale(0.96);}
+.status-btn.s-planificata{border-color:#d97706;background:var(--yellow-light);color:#92400e;}
+.status-btn.s-planificata.active{background:#d97706;color:white;}
+.status-btn.s-incarcare{border-color:#ea580c;background:var(--orange-light);color:#9a3412;}
+.status-btn.s-incarcare.active{background:#ea580c;color:white;}
+.status-btn.s-tranzit{border-color:#2563eb;background:var(--blue-light);color:#1e40af;}
+.status-btn.s-tranzit.active{background:#2563eb;color:white;}
+.status-btn.s-vama-exp{border-color:#ea580c;background:var(--orange-light);color:#9a3412;}
+.status-btn.s-vama-exp.active{background:#ea580c;color:white;}
+.status-btn.s-vama-imp{border-color:#7c3aed;background:var(--purple-light);color:#5b21b6;}
+.status-btn.s-vama-imp.active{background:#7c3aed;color:white;}
+.status-btn.s-descarcare{border-color:#0891b2;background:#ecfeff;color:#0e7490;}
+.status-btn.s-descarcare.active{background:#0891b2;color:white;}
+.status-btn.s-finalizata{border-color:#16a34a;background:var(--green-light);color:#166534;}
+.status-btn.s-finalizata.active{background:#16a34a;color:white;}
+.status-btn.s-anulata{border-color:#dc2626;background:var(--red-light);color:#991b1b;}
+.status-btn.s-anulata.active{background:#dc2626;color:white;}
+
+/* CHELTUIELI */
+.chel-section{margin-top:4px;}
+.chel-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.chel-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:white;border-radius:8px;border:1px solid var(--border);}
+.chel-tip{font-size:13px;font-weight:600;}
+.chel-desc{font-size:11px;color:var(--muted);}
+.chel-suma{font-weight:700;color:var(--red);font-size:14px;white-space:nowrap;}
+
+.add-chel{background:white;border-radius:10px;border:1px solid var(--border);padding:12px;}
+.add-chel-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.add-chel-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.mini-field label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;}
+.mini-field input,.mini-field select{width:100%;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;background:white;}
+.mini-field input:focus,.mini-field select:focus{border-color:var(--blue);}
+.btn-add{width:100%;padding:11px;background:var(--dark);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;margin-top:2px;}
+.btn-add:active{opacity:0.85;}
+
+/* EMPTY */
+.empty{padding:40px 20px;text-align:center;color:var(--muted);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text);}
+.empty-sub{font-size:13px;line-height:1.5;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:white;padding:11px 18px;border-radius:9px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap;max-width:90vw;}
+.toast.show{opacity:1;}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SECTION HEADER */
+.section-header{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:4px 0 10px;display:flex;align-items:center;justify-content:space-between;}
+.count-badge{background:var(--blue);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-logo">
+    <svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+  </div>
+  <div class="login-title">AXM Cargo</div>
+  <div class="login-sub">Panou mobil de control</div>
+  <div class="login-card">
+    <div class="login-error" id="loginError"></div>
+    <div class="field">
+      <label>Parolă Admin</label>
+      <div class="field-inner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input type="password" id="inputPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="eye-btn" type="button" onclick="toggleEye()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn-login" onclick="doLogin()">Intră în aplicație →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="app">
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div>
+        <div class="header-title">AXM Cargo</div>
+        <div class="header-sub">Curse Active</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-refresh" onclick="loadCurse()">↻ Refresh</button>
+      <button class="btn-logout" onclick="doLogout()">Ieșire</button>
+    </div>
+  </div>
+  <div class="content" id="appContent">
+    <div class="loading"><div class="spinner"></div> Se încarcă...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://ogqyvwzmdfvyouseipik.supabase.co';
+const SUPABASE_KEY='sb_publishable_ufnBdXhXbPCDUIV6eUPG_A_T-teDiXN';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+
+const ADMIN_HASH='-dbxxsj';
+const STATUSES=['Planificată','La Încărcare','În Tranzit','La Vamă Export','La Vamă Import','La Descărcare','Finalizată','Anulată'];
+const STATUS_CLASS={'Planificată':'s-planificata','La Încărcare':'s-incarcare','În Tranzit':'s-tranzit','La Vamă Export':'s-vama-exp','La Vamă Import':'s-vama-imp','La Descărcare':'s-descarcare','Finalizată':'s-finalizata','Anulată':'s-anulata'};
+const STATUS_COLORS={'Planificată':'#d97706','La Încărcare':'#ea580c','În Tranzit':'#2563eb','La Vamă Export':'#ea580c','La Vamă Import':'#7c3aed','La Descărcare':'#0891b2','Finalizată':'#16a34a','Anulată':'#dc2626'};
+const STATUS_BG={'Planificată':'#fffbeb','La Încărcare':'#fff7ed','În Tranzit':'#eff6ff','La Vamă Export':'#fff7ed','La Vamă Import':'#f5f3ff','La Descărcare':'#ecfeff','Finalizată':'#f0fdf4','Anulată':'#fef2f2'};
+
+let expandedId=null;
+
+// AUTH
+function hp(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h.toString(36);}
+function toggleEye(){const i=document.getElementById('inputPass');i.type=i.type==='password'?'text':'password';}
+
+function doLogin(){
+  const pass=document.getElementById('inputPass').value;
+  const err=document.getElementById('loginError');
+  err.style.display='none';
+  if(!pass){err.textContent='Introdu parola.';err.style.display='block';return;}
+  if(hp(pass)===ADMIN_HASH){
+    localStorage.setItem('axm_mobile_auth','1');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='flex';
+    loadCurse();
+  } else {
+    err.textContent='Parolă incorectă.';
+    err.style.display='block';
+    document.getElementById('inputPass').value='';
+  }
+}
+
+function doLogout(){
+  localStorage.removeItem('axm_mobile_auth');
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('inputPass').value='';
+}
+
+// LOAD CURSE
+async function loadCurse(){
+  document.getElementById('appContent').innerHTML='<div class="loading"><div class="spinner"></div> Se încarcă cursele...</div>';
+  const statuseActive=['Planificată','La Încărcare','În Tranzit','La Vamă Export','La Vamă Import','La Descărcare'];
+  const{data,error}=await sb.from('curse').select('*').in('status',statuseActive).order('data_plecare',{ascending:false});
+  if(error){
+    document.getElementById('appContent').innerHTML='<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-title">Eroare conexiune</div><div class="empty-sub">'+error.message+'</div></div>';
+    return;
+  }
+  const curse=data||[];
+  if(curse.length===0){
+    document.getElementById('appContent').innerHTML='<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">Nicio cursă activă</div><div class="empty-sub">Toate cursele sunt finalizate sau nu există curse înregistrate.</div></div>';
+    return;
+  }
+  renderCurse(curse);
+}
+
+function renderCurse(curse){
+  const html='<div class="section-header"><span>Curse Active</span><span class="count-badge">'+curse.length+'</span></div>'+
+  '<div class="curse-list">'+curse.map(c=>cursaCardHTML(c)).join('')+'</div>';
+  document.getElementById('appContent').innerHTML=html;
+  // Reload cheltuieli pentru cardul expandat dacă există
+  if(expandedId){
+    const card=document.getElementById('card_'+expandedId);
+    if(card){card.classList.add('expanded');loadCheltuieliCard(expandedId);}
+  }
+}
+
+function cursaCardHTML(c){
+  const color=STATUS_COLORS[c.status]||'#6b7280';
+  const bg=STATUS_BG[c.status]||'#f9fafb';
+  return`<div class="cursa-card" id="card_${c.id}" onclick="toggleCard('${c.id}')">
+    <div class="cursa-card-main">
+      <div class="cursa-card-left">
+        <div class="cursa-ruta">
+          <span style="font-weight:700">${c.origine||'—'}</span>
+          <span class="cursa-ruta-arrow">→</span>
+          <span>${c.destinatie||'—'}</span>
+        </div>
+        <div class="cursa-meta">
+          <div class="cursa-meta-item">🚛 <strong>${c.camion||'—'}</strong>${c.remorca?' / '+c.remorca:''}</div>
+          ${c.client?`<div class="cursa-meta-item">👤 <strong>${c.client}</strong></div>`:''}
+          <div class="cursa-meta-item" style="background:${bg};border-color:${color};color:${color}">⬤ ${c.status||'—'}</div>
+        </div>
+      </div>
+      <span class="cursa-expand-icon">▾</span>
+    </div>
+    <div class="cursa-detalii" id="detalii_${c.id}">
+      ${detaliiHTML(c)}
+    </div>
+  </div>`;
+}
+
+function detaliiHTML(c){
+  return`<div class="detalii-grid">
+    <div class="detalii-item"><div class="detalii-label">Data Plecare</div><div class="detalii-value">${formatDate(c.data_plecare)}</div></div>
+    <div class="detalii-item"><div class="detalii-label">Șofer</div><div class="detalii-value">${c.sofer||'—'}</div></div>
+    <div class="detalii-item"><div class="detalii-label">Distanță</div><div class="detalii-value">${c.distanta_km?c.distanta_km+' km':'—'}</div></div>
+    <div class="detalii-item"><div class="detalii-label">Greutate</div><div class="detalii-value">${c.greutate_tone?c.greutate_tone+' t':'—'}</div></div>
+    <div class="detalii-item"><div class="detalii-label">Venit</div><div class="detalii-value" style="color:var(--green)">€${parseFloat(c.venit||0).toLocaleString('ro-RO')}</div></div>
+    <div class="detalii-item"><div class="detalii-label">Remorcă</div><div class="detalii-value">${c.remorca||'—'}</div></div>
+  </div>
+  <div class="status-section">
+    <div class="status-section-title">Actualizează Status</div>
+    <div class="status-grid">
+      ${STATUSES.map(s=>`<button class="status-btn ${STATUS_CLASS[s]}${c.status===s?' active':''}" onclick="changeStatus(event,'${c.id}','${s}')">${s}</button>`).join('')}
+    </div>
+  </div>
+  <div class="chel-section">
+    <div class="status-section-title">Cheltuieli Cursă</div>
+    <div id="chel_${c.id}"><div class="loading" style="padding:16px"><div class="spinner"></div></div></div>
+    <div class="add-chel">
+      <div class="add-chel-title">+ Adaugă Cheltuială</div>
+      <div class="add-chel-row">
+        <div class="mini-field"><label>Tip</label><select id="ct_${c.id}">
+          <option>Combustibil</option><option>Parcare</option><option>Taxă Drum</option>
+          <option>Vulcanizare</option><option>Amendă</option><option>Reparație Urgentă</option>
+          <option>Taxă Pod</option><option>Mâncare/Cazare</option><option>Altele</option>
+        </select></div>
+        <div class="mini-field"><label>Sumă (EUR)</label><input type="number" id="cs_${c.id}" placeholder="0.00" min="0" step="0.01"></div>
+      </div>
+      <div class="mini-field" style="margin-bottom:8px"><label>Descriere</label><input type="text" id="cd_${c.id}" placeholder="ex: Vulcanizare Turcia 50 EUR"></div>
+      <button class="btn-add" onclick="addCheltuiala(event,'${c.id}','${c.camion||''}')">Salvează Cheltuială</button>
+    </div>
+  </div>`;
+}
+
+async function toggleCard(id){
+  const card=document.getElementById('card_'+id);
+  if(!card)return;
+  const wasExpanded=card.classList.contains('expanded');
+  // Închide toate
+  document.querySelectorAll('.cursa-card').forEach(c=>c.classList.remove('expanded'));
+  expandedId=null;
+  if(!wasExpanded){
+    card.classList.add('expanded');
+    expandedId=id;
+    loadCheltuieliCard(id);
+  }
+}
+
+async function loadCheltuieliCard(cursaId){
+  const el=document.getElementById('chel_'+cursaId);
+  if(!el)return;
+  const{data}=await sb.from('cheltuieli').select('*').eq('cursa_id',cursaId).order('created_at',{ascending:false});
+  const items=data||[];
+  if(items.length===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:4px 0 10px">Nicio cheltuială pe această cursă.</div>';
+    return;
+  }
+  el.innerHTML='<div class="chel-list">'+items.map(i=>`
+    <div class="chel-item">
+      <div><div class="chel-tip">${i.tip}</div><div class="chel-desc">${i.descriere||''}</div></div>
+      <div class="chel-suma">-€${parseFloat(i.suma||0).toLocaleString('ro-RO')}</div>
+    </div>`).join('')+'</div>';
+}
+
+async function changeStatus(e,cursaId,newStatus){
+  e.stopPropagation();
+  const{error}=await sb.from('curse').update({status:newStatus}).eq('id',cursaId);
+  if(error){showToast('❌ Eroare: '+error.message);return;}
+  showToast('✅ Status: '+newStatus);
+  // Update buton activ fără să reîncarce tot
+  const card=document.getElementById('card_'+cursaId);
+  if(card){
+    card.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('active'));
+    const cls=STATUS_CLASS[newStatus];
+    card.querySelector('.status-btn.'+cls)?.classList.add('active');
+    // Update badge status din card header
+    const color=STATUS_COLORS[newStatus]||'#6b7280';
+    const bg=STATUS_BG[newStatus]||'#f9fafb';
+    const badge=card.querySelector('.cursa-meta-item:last-child');
+    if(badge){badge.style.background=bg;badge.style.borderColor=color;badge.style.color=color;badge.textContent='⬤ '+newStatus;}
+  }
+}
+
+async function addCheltuiala(e,cursaId,camion){
+  e.stopPropagation();
+  const tip=document.getElementById('ct_'+cursaId)?.value;
+  const suma=parseFloat(document.getElementById('cs_'+cursaId)?.value)||0;
+  const desc=document.getElementById('cd_'+cursaId)?.value?.trim()||'';
+  if(!suma){showToast('Introdu suma cheltuielii.');return;}
+  const{error}=await sb.from('cheltuieli').insert([{
+    camion,cursa_id:cursaId,tip,suma,
+    descriere:desc||tip,
+    data:new Date().toISOString().split('T')[0]
+  }]);
+  if(error){showToast('❌ Eroare: '+error.message);return;}
+  document.getElementById('cs_'+cursaId).value='';
+  document.getElementById('cd_'+cursaId).value='';
+  showToast('✅ Cheltuială adăugată!');
+  loadCheltuieliCard(cursaId);
+}
+
+// UTILS
+function formatDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('ro-RO');}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// AUTO-LOGIN
+if(localStorage.getItem('axm_mobile_auth')==='1'){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='flex';
+  loadCurse();
+}
+</script>
+</body>
+</html>
