@@ -140,11 +140,35 @@ tr:hover td{background:#f9fafb;}
 .poi-card-title{font-size:14px;font-weight:600;margin-bottom:3px;}
 .poi-card-body{font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;}
 @media(max-width:768px){
-  .sidebar{width:56px;}
+  /* SIDEBAR */
+  .sidebar{width:52px;}
   .logo-text,.logo-sub,.nav-item span,.nav-label{display:none;}
   .nav-item{justify-content:center;padding:10px;}
-  .cards-grid{grid-template-columns:1fr 1fr;}
+  /* LAYOUT */
+  .main{width:calc(100vw - 52px);}
+  .content{padding:12px;}
+  .topbar{padding:0 12px;}
+  .topbar h1{font-size:14px;}
+  .topbar-time{display:none;}
+  /* CARDS */
+  .cards-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .card{padding:12px 14px;}
+  .card-value{font-size:20px;}
+  .card-sub{font-size:11px;}
+  /* DASHBOARD GRIDS */
   .dash-grid{grid-template-columns:1fr;}
+  /* TABLES */
+  .table-card{overflow-x:auto;}
+  table{min-width:500px;}
+  .search-input{width:150px;}
+  /* MODAL */
+  .modal{width:98vw;max-width:98vw;margin:4px;}
+  .modal-body{padding:14px 16px;}
+  .modal-header{padding:14px 16px 12px;}
+  .form-row{grid-template-columns:1fr;gap:10px;}
+  .form-row.three{grid-template-columns:1fr;}
+  /* POI */
+  .poi-grid{grid-template-columns:1fr;}
 }
 .login-page{position:fixed;inset:0;z-index:9999;display:flex;background:white;}
 .login-left{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;}
@@ -293,6 +317,10 @@ tr:hover td{background:#f9fafb;}
       <div class="nav-item" onclick="showPage('deconturi')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         <span>Deconturi</span>
+      </div>
+      <div class="nav-item" onclick="showPage('rapoarte')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Rapoarte</span>
       </div>
     </div>
   </nav>
@@ -469,18 +497,18 @@ tickClock();setInterval(tickClock,1000);
 function showPage(page){
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(i=>{i.classList.remove('active');if(i.getAttribute('onclick')?.includes("'"+page+"'"))i.classList.add('active');});
-  const titles={dashboard:'Dashboard',curse:'Gestionare Curse',cheltuieli:'Cheltuieli',reparatii:'Reparații',documente:'Documente',flota:'Flotă',poi:'Locații POI',costuri:'Costuri Fixe',deconturi:'Deconturi'};
+  const titles={dashboard:'Dashboard',curse:'Gestionare Curse',cheltuieli:'Cheltuieli',reparatii:'Reparații',documente:'Documente',flota:'Flotă',poi:'Locații POI',costuri:'Costuri Fixe',deconturi:'Deconturi',rapoarte:'Rapoarte'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   const addLabels={curse:'+ Cursă Nouă',cheltuieli:'+ Cheltuială',reparatii:'+ Reparație',documente:'+ Document',flota:'+ Vehicul',poi:'+ Locație POI'};
   const btn=document.getElementById('addBtn');
-  btn.style.display=(page!=='dashboard'&&page!=='costuri'&&page!=='deconturi')?'inline-flex':'none';
+  btn.style.display=(page!=='dashboard'&&page!=='costuri'&&page!=='deconturi'&&page!=='rapoarte')?'inline-flex':'none';
   document.getElementById('addBtnLabel').textContent=addLabels[page]||'+ Adaugă';
   renderPage(page);
 }
 
 async function renderPage(page){
   document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div> Se încarcă...</div>';
-  const r={dashboard:renderDashboard,curse:renderCurse,cheltuieli:renderCheltuieli,reparatii:renderReparatii,documente:renderDocumente,flota:renderFlota,poi:renderPOI,costuri:renderCosturi,deconturi:renderDeconturi};
+  const r={dashboard:renderDashboard,curse:renderCurse,cheltuieli:renderCheltuieli,reparatii:renderReparatii,documente:renderDocumente,flota:renderFlota,poi:renderPOI,costuri:renderCosturi,deconturi:renderDeconturi,rapoarte:renderRapoarte};
   if(r[page])await r[page]();
 }
 
@@ -1722,6 +1750,221 @@ function doSetup(){
 }
 
 function isAdmin(){return currentUser==='admin';}
+
+// RAPOARTE
+async function renderRapoarte(){
+  document.getElementById('content').innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;background:white;padding:10px 16px;border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow)">
+        <label style="font-size:12px;font-weight:600;color:var(--text-muted)">Tip:</label>
+        <select id="rap_tip" onchange="genereazaRaport()" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;outline:none">
+          <option value="camion">Per Camion</option>
+          <option value="cursa">Per Cursă</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;background:white;padding:10px 16px;border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow)">
+        <label style="font-size:12px;font-weight:600;color:var(--text-muted)">Perioadă:</label>
+        <select id="rap_perioada" onchange="genereazaRaport()" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;outline:none">
+          <option value="luna">Luna Aceasta</option>
+          <option value="luna_trecuta">Luna Trecută</option>
+          <option value="trimestru">Trimestrul Curent</option>
+          <option value="an">Anul Curent</option>
+          <option value="total">Tot Istoricul</option>
+        </select>
+      </div>
+      <button class="btn btn-secondary" onclick="exportRaportPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF
+      </button>
+    </div>
+    <div id="raportContent"><div class="loading"><div class="spinner"></div> Se generează...</div></div>`;
+  await genereazaRaport();
+}
+
+function getPerioadaFiltru(){
+  const p=document.getElementById('rap_perioada')?.value||'luna';
+  const now=new Date();
+  let start,end;
+  if(p==='luna'){start=new Date(now.getFullYear(),now.getMonth(),1);end=new Date(now.getFullYear(),now.getMonth()+1,0);}
+  else if(p==='luna_trecuta'){start=new Date(now.getFullYear(),now.getMonth()-1,1);end=new Date(now.getFullYear(),now.getMonth(),0);}
+  else if(p==='trimestru'){const q=Math.floor(now.getMonth()/3);start=new Date(now.getFullYear(),q*3,1);end=new Date(now.getFullYear(),q*3+3,0);}
+  else if(p==='an'){start=new Date(now.getFullYear(),0,1);end=new Date(now.getFullYear(),11,31);}
+  else return null;
+  return{start:start.toISOString().split('T')[0],end:end.toISOString().split('T')[0]};
+}
+
+function getPerioadaLabel(){
+  const p=document.getElementById('rap_perioada')?.value||'luna';
+  const now=new Date();
+  const luni=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+  if(p==='luna')return luni[now.getMonth()]+' '+now.getFullYear();
+  if(p==='luna_trecuta'){const m=now.getMonth()-1<0?11:now.getMonth()-1;return luni[m]+' '+(now.getMonth()-1<0?now.getFullYear()-1:now.getFullYear());}
+  if(p==='trimestru')return 'T'+(Math.floor(now.getMonth()/3)+1)+' '+now.getFullYear();
+  if(p==='an')return 'Anul '+now.getFullYear();
+  return 'Tot Istoricul';
+}
+
+function getNrLuni(){
+  const p=document.getElementById('rap_perioada')?.value||'luna';
+  if(p==='luna'||p==='luna_trecuta')return 1;
+  if(p==='trimestru')return 3;
+  if(p==='an')return 12;
+  return 1;
+}
+
+async function genereazaRaport(){
+  const tip=document.getElementById('rap_tip')?.value||'camion';
+  const el=document.getElementById('raportContent');
+  if(!el)return;
+  el.innerHTML='<div class="loading"><div class="spinner"></div> Se generează...</div>';
+  const filtru=getPerioadaFiltru();
+  let qC=sb.from('curse').select('*').order('data_plecare',{ascending:false});
+  let qH=sb.from('cheltuieli').select('*');
+  let qR=sb.from('reparatii').select('*');
+  if(filtru){qC=qC.gte('data_plecare',filtru.start).lte('data_plecare',filtru.end);qH=qH.gte('data',filtru.start).lte('data',filtru.end);qR=qR.gte('data',filtru.start).lte('data',filtru.end);}
+  const[cr,ch,rr,fl]=await Promise.all([qC,qH,qR,sb.from('flota').select('*').eq('tip','Tractor')]);
+  const curse=cr.data||[],chel=ch.data||[],rep=rr.data||[],flota=fl.data||[];
+  const costuriFixe=loadCosturi();
+  const nrLuni=getNrLuni();
+  const perioadaLabel=getPerioadaLabel();
+  const costFixPerCamionLuna=costuriFixe.per_camion.reduce((s,i)=>s+calcLunarEur(i,costuriFixe.curs_ron),0);
+  const costFirmaLuna=costuriFixe.per_firma.reduce((s,i)=>s+calcLunarEur(i,costuriFixe.curs_ron),0);
+  if(tip==='camion')el.innerHTML=raportPerCamion(curse,chel,rep,flota,costFixPerCamionLuna,costFirmaLuna,nrLuni,perioadaLabel);
+  else el.innerHTML=raportPerCursa(curse,chel,costFixPerCamionLuna,perioadaLabel);
+}
+
+function raportPerCamion(curse,chel,rep,flota,costFixPerCamionLuna,costFirmaLuna,nrLuni,perioadaLabel){
+  const camioane=flota.length>0?flota.map(f=>f.numar_inmatriculare):[...new Set(curse.map(c=>c.camion).filter(Boolean))];
+  if(camioane.length===0)return '<div class="empty-state"><p>Nu există camioane înregistrate.</p></div>';
+  const costFixTotal=costFixPerCamionLuna*nrLuni;
+  const costFirmaTotal=costFirmaLuna*nrLuni/Math.max(camioane.length,1);
+  let tot={venit:0,varCost:0,fixCost:0,profit:0,curse:0};
+  const rows=camioane.map(cam=>{
+    const cc=curse.filter(c=>c.camion===cam);
+    const ch2=chel.filter(c=>c.camion===cam);
+    const rr2=rep.filter(r=>r.camion===cam);
+    const venit=cc.reduce((s,c)=>s+(parseFloat(c.venit)||0),0);
+    const costVar=ch2.reduce((s,c)=>s+(parseFloat(c.suma)||0),0)+rr2.reduce((s,r)=>s+(parseFloat(r.cost)||0),0);
+    const costFix=costFixTotal+costFirmaTotal;
+    const profit=venit-costVar-costFix;
+    const marja=venit>0?Math.round(profit/venit*100):0;
+    const sofer=flota.find(f=>f.numar_inmatriculare===cam)?.sofer||cc[0]?.sofer||'—';
+    tot.venit+=venit;tot.varCost+=costVar;tot.fixCost+=costFix;tot.profit+=profit;tot.curse+=cc.length;
+    return{cam,sofer,curse:cc.length,venit,costVar,costFix,profit,marja};
+  });
+  const thStyle='padding:10px 14px;background:#1e293b;color:white;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;white-space:nowrap';
+  const thR=thStyle+';text-align:right';
+  return`<div id="raportPDF">
+    <div style="background:#0f1117;color:white;padding:14px 20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div><div style="font-size:15px;font-weight:700">Raport Per Camion</div><div style="font-size:12px;color:#9ca3af">Perioada: ${perioadaLabel}</div></div>
+      <div style="font-size:12px;color:#9ca3af">Cost fix/camion: €${Math.round(costFixTotal+costFirmaTotal)}/perioadă</div>
+    </div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="${thStyle}">Camion</th><th style="${thStyle}">Șofer</th>
+        <th style="${thR}">Curse</th><th style="${thR}">Venit</th>
+        <th style="${thR}">Cost Var.</th><th style="${thR}">Cost Fix</th>
+        <th style="${thR}">Cost Total</th><th style="${thR}">Profit Real</th><th style="${thR}">Marjă</th>
+      </tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr style="background:${i%2===0?'white':'#f9fafb'}">
+        <td style="padding:12px 14px;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">${r.cam}</td>
+        <td style="padding:12px 14px;font-size:13px;border-bottom:1px solid #f3f4f6">${r.sofer}</td>
+        <td style="padding:12px 14px;text-align:right;border-bottom:1px solid #f3f4f6">${r.curse}</td>
+        <td style="padding:12px 14px;text-align:right;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">&#8364;${r.venit.toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;text-align:right;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">-&#8364;${r.costVar.toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;text-align:right;color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">-&#8364;${Math.round(r.costFix).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;text-align:right;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">-&#8364;${Math.round(r.costVar+r.costFix).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:13px;border-bottom:1px solid #f3f4f6;color:${r.profit>=0?'var(--green)':'var(--red)'}">${r.profit>=0?'':'−'}&#8364;${Math.abs(Math.round(r.profit)).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;text-align:right;border-bottom:1px solid #f3f4f6"><span style="background:${r.marja>=30?'var(--green-light)':r.marja>=10?'var(--yellow-light)':'var(--red-light)'};color:${r.marja>=30?'var(--green)':r.marja>=10?'var(--yellow)':'var(--red)'};padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600">${r.marja}%</span></td>
+      </tr>`).join('')}
+      </tbody><tfoot><tr>
+        <td colspan="2" style="padding:12px 14px;background:#0f1117;color:white;font-weight:700">TOTAL FLOTĂ</td>
+        <td style="padding:12px 14px;background:#0f1117;color:white;text-align:right;font-weight:700">${tot.curse}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#4ade80;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">&#8364;${tot.venit.toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#f87171;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">-&#8364;${tot.varCost.toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#fb923c;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">-&#8364;${Math.round(tot.fixCost).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#f87171;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">-&#8364;${Math.round(tot.varCost+tot.fixCost).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:${tot.profit>=0?'#166534':'#991b1b'};color:white;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:14px">${tot.profit>=0?'':'−'}&#8364;${Math.abs(Math.round(tot.profit)).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:white;text-align:right;font-weight:700">${tot.venit>0?Math.round(tot.profit/tot.venit*100):0}%</td>
+      </tr></tfoot>
+    </table></div>
+    <div style="padding:12px 20px;background:#f8fafc;border-top:1px solid var(--border);border-radius:0 0 10px 10px;font-size:12px;color:var(--text-muted)">
+      ℹ️ Cost fix/camion: €${Math.round(costFixPerCamionLuna*nrLuni)} + cotă firmă €${Math.round(costFirmaLuna*nrLuni/Math.max(camioane.length,1))}
+    </div></div>`;
+}
+
+function raportPerCursa(curse,chel,costFixPerCamionLuna,perioadaLabel){
+  if(curse.length===0)return '<div class="empty-state"><p>Nu există curse în perioada selectată.</p></div>';
+  const costFixPerCursa=costFixPerCamionLuna/2;
+  const thStyle='padding:10px 14px;background:#1e293b;color:white;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;white-space:nowrap';
+  const thR=thStyle+';text-align:right';
+  return`<div id="raportPDF">
+    <div style="background:#0f1117;color:white;padding:14px 20px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div><div style="font-size:15px;font-weight:700">Raport Per Cursă</div><div style="font-size:12px;color:#9ca3af">${perioadaLabel} — ${curse.length} curse</div></div>
+      <div style="font-size:12px;color:#9ca3af">Cost fix estimat/cursă: €${Math.round(costFixPerCursa)}</div>
+    </div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="${thStyle}">Data</th><th style="${thStyle}">Rută</th>
+        <th style="${thStyle}">Camion</th><th style="${thStyle}">Șofer</th>
+        <th style="${thR}">Venit</th><th style="${thR}">Cost Var.</th>
+        <th style="${thR}">Cost Fix</th><th style="${thR}">Profit Real</th>
+        <th style="${thR}">Status</th>
+      </tr></thead><tbody>
+      ${curse.map((c,i)=>{
+        const chelCursa=chel.filter(ch=>ch.cursa_id===c.id);
+        const costVar=(parseFloat(c.cost_total)||0)+chelCursa.reduce((s,ch)=>s+(parseFloat(ch.suma)||0),0);
+        const profit=(parseFloat(c.venit)||0)-costVar-costFixPerCursa;
+        const marja=(parseFloat(c.venit)||0)>0?Math.round(profit/(parseFloat(c.venit)||1)*100):0;
+        return`<tr style="background:${i%2===0?'white':'#f9fafb'}">
+          <td style="padding:10px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid #f3f4f6">${formatDate(c.data_plecare)}</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:500;border-bottom:1px solid #f3f4f6">${c.origine||'—'} → ${c.destinatie||'—'}</td>
+          <td style="padding:10px 14px;font-size:12px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid #f3f4f6">${c.camion||'—'}</td>
+          <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #f3f4f6">${c.sofer||'—'}</td>
+          <td style="padding:10px 14px;text-align:right;color:var(--green);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">&#8364;${parseFloat(c.venit||0).toLocaleString('ro-RO')}</td>
+          <td style="padding:10px 14px;text-align:right;color:var(--red);font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">-&#8364;${Math.round(costVar).toLocaleString('ro-RO')}</td>
+          <td style="padding:10px 14px;text-align:right;color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6">-&#8364;${Math.round(costFixPerCursa).toLocaleString('ro-RO')}</td>
+          <td style="padding:10px 14px;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;border-bottom:1px solid #f3f4f6;color:${profit>=0?'var(--green)':'var(--red)'}">${profit>=0?'':'−'}&#8364;${Math.abs(Math.round(profit)).toLocaleString('ro-RO')} <span style="font-size:10px">(${marja}%)</span></td>
+          <td style="padding:10px 14px;text-align:center;border-bottom:1px solid #f3f4f6"><span class="badge badge-${statusColor(c.status)}">${c.status||'—'}</span></td>
+        </tr>`;
+      }).join('')}
+      </tbody><tfoot><tr>
+        <td colspan="4" style="padding:12px 14px;background:#0f1117;color:white;font-weight:700">TOTAL (${curse.length} curse)</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#4ade80;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">&#8364;${curse.reduce((s,c)=>s+(parseFloat(c.venit)||0),0).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#f87171;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">-&#8364;${curse.reduce((s,c)=>s+(parseFloat(c.cost_total)||0),0).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117;color:#fb923c;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">-&#8364;${Math.round(curse.length*costFixPerCursa).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#166534;color:white;text-align:right;font-weight:700;font-family:'JetBrains Mono',monospace">&#8364;${Math.round(curse.reduce((s,c)=>s+(parseFloat(c.venit)||0)-(parseFloat(c.cost_total)||0)-costFixPerCursa,0)).toLocaleString('ro-RO')}</td>
+        <td style="padding:12px 14px;background:#0f1117"></td>
+      </tr></tfoot>
+    </table></div>
+    <div style="padding:12px 20px;background:#f8fafc;border-top:1px solid var(--border);border-radius:0 0 10px 10px;font-size:12px;color:var(--text-muted)">
+      ℹ️ Cost fix per cursă estimat la €${Math.round(costFixPerCursa)} (2 curse/lună/camion)
+    </div></div>`;
+}
+
+function exportRaportPDF(){
+  const el=document.getElementById('raportPDF');
+  if(!el){alert('Generează mai întâi un raport.');return;}
+  const tip=document.getElementById('rap_tip')?.value||'raport';
+  const perioada=getPerioadaLabel();
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Raport ${tip} — ${perioada}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>body{font-family:'Inter',sans-serif;margin:20px;font-size:13px;}table{width:100%;border-collapse:collapse;}@media print{body{margin:10px;}}</style>
+    </head><body>
+    <div style="text-align:center;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700">FleetTMS — AXM Cargo</h2>
+      <p style="color:#6b7280;font-size:13px">Raport ${tip==='camion'?'Per Camion':'Per Cursă'} — ${perioada}</p>
+    </div>
+    ${el.innerHTML}
+    <div style="margin-top:20px;text-align:right;font-size:11px;color:#9ca3af">Generat: ${new Date().toLocaleString('ro-RO')}</div>
+    <scr`+'ipt>window.onload=()=>{window.print();}<'+`/script>
+    </body></html>`);
+  w.document.close();
+}
 
 // START
 async function init(){
