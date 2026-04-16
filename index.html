@@ -93,6 +93,11 @@ tr:hover td{background:#f9fafb;}
 .form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border 0.15s;}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);}
 .form-group textarea{resize:vertical;min-height:70px;}
+.form-group input[type="date"]::-webkit-datetime-edit-fields-wrapper{direction:ltr;}
+.form-group input[type="date"]::-webkit-datetime-edit-day-field{order:1;}
+.form-group input[type="date"]::-webkit-datetime-edit-literal{order:2;}
+.form-group input[type="date"]::-webkit-datetime-edit-month-field{order:3;}
+.form-group input[type="date"]::-webkit-datetime-edit-year-field{order:5;}
 .empty-state{padding:60px 20px;text-align:center;color:var(--text-muted);}
 .empty-state svg{width:40px;height:40px;margin:0 auto 12px;opacity:0.3;display:block;}
 .empty-state p{font-size:13px;}
@@ -1517,6 +1522,7 @@ function openAddModal(){
   const titles={curse:'Cursă Nouă',cheltuieli:'Cheltuială Nouă',reparatii:'Reparație Nouă',documente:'Document Nou',flota:'Vehicul Nou',poi:'Locație POI Nouă'};
   document.getElementById('modalTitle').textContent=titles[currentPage];
   document.getElementById('modalBody').innerHTML=forms[currentPage]||'';
+  fixDateInputs();
   document.getElementById('modalOverlay').style.display='flex';
 }
 
@@ -1532,10 +1538,12 @@ function editItem(table,data){
   const titles={curse:'Editează Cursă',cheltuieli:'Editează Cheltuială',reparatii:'Editează Reparație',documente:'Editează Document',flota:'Editează Vehicul',poi:'Editează Locație POI'};
   document.getElementById('modalTitle').textContent=titles[table];
   document.getElementById('modalBody').innerHTML=forms[table]||'';
+  fixDateInputs();
   document.getElementById('modalOverlay').style.display='flex';
   currentPage=table;
 }
 
+function fixDateInputs(){document.querySelectorAll('#modalBody input[type="date"]').forEach(el=>{el.setAttribute('lang','ro');});}
 function closeModal(e){
   if(e&&e.target!==document.getElementById('modalOverlay'))return;
   document.getElementById('modalOverlay').style.display='none';
