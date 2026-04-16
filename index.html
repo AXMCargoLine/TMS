@@ -796,7 +796,7 @@ async function deschideDecont(id){
 function deccontFormHTML(d, optCurse, randuri, cursRon, cursTry){
   const statusOpt=['Draft','Finalizat'].map(s=>'<option'+(d&&d.status===s?' selected':'')+'>'+s+'</option>').join('');
   return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'+
-  '<div class="form-group"><label>Data Decont</label><input type="text" id="dec_data" placeholder="zz/ll/aaaa" maxlength="10" value="'+(d&&d.data_decont?toDisplay(d.data_decont):toDisplay(today()))+'"></div>'+
+  '<div class="form-group"><label>Data Decont</label><input type="date" id="dec_data" value="'+(d&&d.data_decont?d.data_decont:today())+'"></div>'+
   '<div class="form-group"><label>Status</label><select id="dec_status">'+statusOpt+'</select></div>'+
   '<div class="form-group"><label>Camion</label><input id="dec_camion" value="'+(d&&d.camion?d.camion:'')+'" placeholder="ex: AG 37 AGL"></div>'+
   '<div class="form-group"><label>Șofer</label><input id="dec_sofer" value="'+(d&&d.sofer?d.sofer:'')+'" placeholder="Numele șoferului"></div>'+
@@ -945,7 +945,7 @@ async function salveazaDecont(){
   const totTry=rows.reduce((s,r)=>s+(parseFloat(r.try_sum)||0),0);
 
   const payload={
-    data_decont:toISO(g('dec_data')),
+    data_decont:g('dec_data'),
     camion:g('dec_camion'),
     sofer:g('dec_sofer'),
     cursa_tur_id:g('dec_tur')||null,
@@ -1465,7 +1465,7 @@ async function renderCheltuieliCursa(cursaId){
     '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px">'+
     '<div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">+ Adaugă Cheltuială Nouă</div>'+
     '<div class="form-row">'+
-    '<div class="form-group"><label>Data</label><input type="text" id="cc_data" placeholder="zz/ll/aaaa" maxlength="10" value="'+toDisplay(today())+'"></div>'+
+    '<div class="form-group"><label>Data</label><input type="date" id="cc_data" value="'+today()+'"></div>'+
     '<div class="form-group"><label>Tip</label><select id="cc_tip">'+tipuri.map(t=>'<option>'+t+'</option>').join('')+'</select></div>'+
     '</div>'+
     '<div class="form-row">'+
@@ -1517,7 +1517,6 @@ function openAddModal(){
   const titles={curse:'Cursă Nouă',cheltuieli:'Cheltuială Nouă',reparatii:'Reparație Nouă',documente:'Document Nou',flota:'Vehicul Nou',poi:'Locație POI Nouă'};
   document.getElementById('modalTitle').textContent=titles[currentPage];
   document.getElementById('modalBody').innerHTML=forms[currentPage]||'';
-  initDateInputs();
   document.getElementById('modalOverlay').style.display='flex';
 }
 
@@ -1533,7 +1532,6 @@ function editItem(table,data){
   const titles={curse:'Editează Cursă',cheltuieli:'Editează Cheltuială',reparatii:'Editează Reparație',documente:'Editează Document',flota:'Editează Vehicul',poi:'Editează Locație POI'};
   document.getElementById('modalTitle').textContent=titles[table];
   document.getElementById('modalBody').innerHTML=forms[table]||'';
-  initDateInputs();
   document.getElementById('modalOverlay').style.display='flex';
   currentPage=table;
 }
@@ -1568,10 +1566,10 @@ async function saveModal(){
   }
   const g=id=>document.getElementById(id)?document.getElementById(id).value:'';
   let payload={},table=currentPage;
-  if(table==='curse')payload={data_plecare:toISO(g('f_data_plecare')),origine:g('f_origine'),destinatie:g('f_destinatie'),puncte_intermediare:JSON.stringify(getWaypoints()),camion:g('f_camion'),remorca:g('f_remorca'),sofer:g('f_sofer'),client:g('f_client'),status:g('f_status'),venit:parseFloat(g('f_venit'))||0,cost_total:parseFloat(g('f_cost_total'))||0,distanta_km:parseFloat(g('f_distanta'))||0,greutate_tone:parseFloat(g('f_greutate'))||20,note:g('f_note')};
-  else if(table==='cheltuieli')payload={data:toISO(g('f_data')),camion:g('f_camion'),tip:g('f_tip'),descriere:g('f_descriere'),suma:parseFloat(g('f_suma'))||0};
-  else if(table==='reparatii')payload={data:toISO(g('f_data')),camion:g('f_camion'),tip:g('f_tip'),descriere:g('f_descriere'),service:g('f_service'),cost:parseFloat(g('f_cost'))||0};
-  else if(table==='documente')payload={tip_document:g('f_tip_document'),entitate:g('f_entitate'),numar_document:g('f_numar_document'),data_emitere:toISO(g('f_data_emitere')),data_expirare:toISO(g('f_data_expirare')),note:g('f_note')};
+  if(table==='curse')payload={data_plecare:g('f_data_plecare'),origine:g('f_origine'),destinatie:g('f_destinatie'),puncte_intermediare:JSON.stringify(getWaypoints()),camion:g('f_camion'),remorca:g('f_remorca'),sofer:g('f_sofer'),client:g('f_client'),status:g('f_status'),venit:parseFloat(g('f_venit'))||0,cost_total:parseFloat(g('f_cost_total'))||0,distanta_km:parseFloat(g('f_distanta'))||0,greutate_tone:parseFloat(g('f_greutate'))||20,note:g('f_note')};
+  else if(table==='cheltuieli')payload={data:g('f_data'),camion:g('f_camion'),tip:g('f_tip'),descriere:g('f_descriere'),suma:parseFloat(g('f_suma'))||0};
+  else if(table==='reparatii')payload={data:g('f_data'),camion:g('f_camion'),tip:g('f_tip'),descriere:g('f_descriere'),service:g('f_service'),cost:parseFloat(g('f_cost'))||0};
+  else if(table==='documente')payload={tip_document:g('f_tip_document'),entitate:g('f_entitate'),numar_document:g('f_numar_document'),data_emitere:g('f_data_emitere'),data_expirare:g('f_data_expirare'),note:g('f_note')};
   else if(table==='flota')payload={numar_inmatriculare:g('f_numar_inmatriculare'),tip:g('f_tip'),marca:g('f_marca'),model:g('f_model'),an_fabricatie:g('f_an_fabricatie'),sofer:g('f_sofer'),status:g('f_status_vehicul'),note:g('f_note')};
   else if(table==='poi')payload={nume:g('f_poi_nume'),tip:g('f_poi_tip'),adresa:g('f_poi_adresa'),tara:g('f_poi_tara'),contact:g('f_poi_contact'),note:g('f_poi_note')};
   let error;
@@ -1645,7 +1643,7 @@ function cursaForm(d){
   try{puncteExistente=d&&d.puncte_intermediare?JSON.parse(d.puncte_intermediare):[];}catch(e){}
   const tipuriPuncte=['Vamă Export','Vamă Import','Punct Încărcare','Punct Descărcare','Parcare','Altele'];
 
-  return '<div class="form-row"><div class="form-group"><label>Data Plecare</label><input type="text" id="f_data_plecare" placeholder="zz/ll/aaaa" maxlength="10" value="'+(d&&d.data_plecare?toDisplay(d.data_plecare):toDisplay(today()))+'"></div><div class="form-group"><label>Status</label><select id="f_status">'+STATUSES.map(s=>'<option'+(d&&d.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>'+
+  return '<div class="form-row"><div class="form-group"><label>Data Plecare</label><input type="date" id="f_data_plecare" value="'+(d&&d.data_plecare?d.data_plecare:today())+'"></div><div class="form-group"><label>Status</label><select id="f_status">'+STATUSES.map(s=>'<option'+(d&&d.status===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>'+
   '<div class="form-row"><div class="form-group"><label>Origine</label><div class="poi-input-wrap"><input id="f_origine" placeholder="ex: Pitești" value="'+(d&&d.origine?d.origine:'')+'" autocomplete="off" oninput="showPOISuggestions(\'f_origine\',\'poi_orig\',this.value)"><div class="poi-dropdown" id="poi_orig" style="display:none"></div></div></div><div class="form-group"><label>Destinație</label><div class="poi-input-wrap"><input id="f_destinatie" placeholder="ex: Bursa" value="'+(d&&d.destinatie?d.destinatie:'')+'" autocomplete="off" oninput="showPOISuggestions(\'f_destinatie\',\'poi_dest\',this.value)"><div class="poi-dropdown" id="poi_dest" style="display:none"></div></div></div></div>'+
 
   // Puncte intermediare
@@ -1673,17 +1671,17 @@ function cursaForm(d){
 
 function cheltuieliForm(d){
   const tipuri=['Combustibil','Taxe Drum','Vignete','Salariu','GPS/Telefon','Asigurare','Altele'];
-  return '<div class="form-row"><div class="form-group"><label>Data</label><input type="text" id="f_data" placeholder="zz/ll/aaaa" maxlength="10" value="'+(d&&d.data?toDisplay(d.data):toDisplay(today()))+'"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Sumă (EUR)</label><input type="number" id="f_suma" placeholder="0" value="'+(d&&d.suma?d.suma:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><input id="f_descriere" placeholder="Detalii" value="'+(d&&d.descriere?d.descriere:'')+'"></div></div>';
+  return '<div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="'+(d&&d.data?d.data:today())+'"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Sumă (EUR)</label><input type="number" id="f_suma" placeholder="0" value="'+(d&&d.suma?d.suma:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><input id="f_descriere" placeholder="Detalii" value="'+(d&&d.descriere?d.descriere:'')+'"></div></div>';
 }
 
 function reparatiiForm(d){
   const tipuri=['Reparație','Revizie','Înlocuire Piese','Anvelope','ITP','Altele'];
-  return '<div class="form-row"><div class="form-group"><label>Data</label><input type="text" id="f_data" placeholder="zz/ll/aaaa" maxlength="10" value="'+(d&&d.data?toDisplay(d.data):toDisplay(today()))+'"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Cost (EUR)</label><input type="number" id="f_cost" placeholder="0" value="'+(d&&d.cost?d.cost:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Service</label><input id="f_service" placeholder="Numele service-ului" value="'+(d&&d.service?d.service:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><textarea id="f_descriere" placeholder="Ce s-a reparat...">'+(d&&d.descriere?d.descriere:'')+'</textarea></div></div>';
+  return '<div class="form-row"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="'+(d&&d.data?d.data:today())+'"></div><div class="form-group"><label>Camion</label><input id="f_camion" placeholder="ex: AG 37 AGL" value="'+(d&&d.camion?d.camion:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Tip</label><select id="f_tip">'+tipuri.map(s=>'<option'+(d&&d.tip===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Cost (EUR)</label><input type="number" id="f_cost" placeholder="0" value="'+(d&&d.cost?d.cost:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Service</label><input id="f_service" placeholder="Numele service-ului" value="'+(d&&d.service?d.service:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Descriere</label><textarea id="f_descriere" placeholder="Ce s-a reparat...">'+(d&&d.descriere?d.descriere:'')+'</textarea></div></div>';
 }
 
 function documenteForm(d){
-  const tipuri=['RCA','CASCO','ITP','Atestare Șofer','Viză','Talon','CMR','Altele'];
-  return '<div class="form-row"><div class="form-group"><label>Tip Document</label><select id="f_tip_document">'+tipuri.map(s=>'<option'+(d&&d.tip_document===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Entitate</label><input id="f_entitate" placeholder="ex: AG 37 AGL sau Ion Popescu" value="'+(d&&d.entitate?d.entitate:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Număr Document</label><input id="f_numar_document" placeholder="ex: RCA-12345" value="'+(d&&d.numar_document?d.numar_document:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Data Emitere</label><input type="text" id="f_data_emitere" placeholder="zz/ll/aaaa" maxlength="10" value="'+(d&&d.data_emitere?toDisplay(d.data_emitere):toDisplay(today()))+'"></div><div class="form-group"><label>Data Expirare</label><input type="text" id="f_data_expirare" placeholder="zz/ll/aaaa" maxlength="10" value="'+(d&&d.data_expirare?toDisplay(d.data_expirare):'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">'+(d&&d.note?d.note:'')+'</textarea></div></div>';
+  const tipuri=['RCA','Casco','ITP','Atestat Sofer','Viza Turcia','Viza Medicala','Asigurare CMR','Copie Conforma Licenta','Altele'];
+  return '<div class="form-row"><div class="form-group"><label>Tip Document</label><select id="f_tip_document">'+tipuri.map(s=>'<option'+(d&&d.tip_document===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div><div class="form-group"><label>Entitate</label><input id="f_entitate" placeholder="ex: AG 37 AGL sau Ion Popescu" value="'+(d&&d.entitate?d.entitate:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Număr Document</label><input id="f_numar_document" placeholder="ex: RCA-12345" value="'+(d&&d.numar_document?d.numar_document:'')+'"></div></div><div class="form-row"><div class="form-group"><label>Data Emitere</label><input type="date" id="f_data_emitere" value="'+(d&&d.data_emitere?d.data_emitere:today())+'"></div><div class="form-group"><label>Data Expirare</label><input type="date" id="f_data_expirare" value="'+(d&&d.data_expirare?d.data_expirare:'')+'"></div></div><div class="form-row full"><div class="form-group"><label>Note</label><textarea id="f_note" placeholder="Observații...">'+(d&&d.note?d.note:'')+'</textarea></div></div>';
 }
 
 function flotaForm(d){
@@ -1699,24 +1697,9 @@ function poiForm(d){
 
 // UTILS
 function today(){return new Date().toISOString().split('T')[0];}
-function formatDate(d){if(!d)return '--';return new Date(d).toLocaleDateString('ro-RO');}
-function toDisplay(iso){if(!iso)return '';const p=iso.split('-');if(p.length!==3)return iso;return p[2]+'/'+p[1]+'/'+p[0];}
-function toISO(disp){if(!disp)return '';const p=disp.split('/');if(p.length!==3)return disp;return p[2]+'-'+p[1]+'-'+p[0];}
+function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('ro-RO');}
 function showError(msg){document.getElementById('content').innerHTML='<div class="alert alert-red">'+msg+'</div>';}
 function filterTable(input,tableId){const val=input.value.toLowerCase();document.querySelectorAll('#'+tableId+' tbody tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(val)?'':'none';});}
-function initDateInputs(){
-  document.querySelectorAll('#modalBody input[placeholder="zz/ll/aaaa"]').forEach(el=>{
-    if(el.dataset.dateInit)return;
-    el.dataset.dateInit='1';
-    el.addEventListener('input',function(e){
-      let v=this.value.replace(/[^0-9]/g,'');
-      if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
-      if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
-      if(v.length>10)v=v.slice(0,10);
-      this.value=v;
-    });
-  });
-}
 
 // AUTH
 const ADMIN_HASH='-dbxxsj'; // Alomania21
