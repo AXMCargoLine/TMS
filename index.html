@@ -210,49 +210,28 @@ tr:hover td{background:#f9fafb;}
       <div id="loginError" class="login-error"></div>
       <div id="viewSignin">
         <div class="login-title">Bine ai revenit</div>
-        <div class="login-sub">Introdu parola pentru a accesa aplicația</div>
+        <div class="login-sub">Autentifică-te pentru a accesa aplicația</div>
+        <div class="login-field">
+          <label>Email</label>
+          <div class="login-field-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <input type="email" id="inputEmail" placeholder="adresa@email.com" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('inputPass').focus()">
+          </div>
+        </div>
         <div class="login-field">
           <label>Parolă</label>
           <div class="login-field-inner">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="inputPass" placeholder="Parola ta" onkeydown="if(event.key==='Enter')doLogin()">
+            <input type="password" id="inputPass" placeholder="Parola ta" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
             <button class="eye-btn" type="button" onclick="toggleEye()">
               <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </div>
-        <button class="login-submit" onclick="doLogin()">
+        <button class="login-submit" id="loginBtn" onclick="doLogin()">
           Intră în aplicație
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
-        <div class="login-change-pass">Setează acces vizualizare? <a href="#" onclick="showView('setup')">Click aici</a></div>
-      </div>
-      <div id="viewSetup" style="display:none">
-        <div class="login-title">Parolă Vizualizare</div>
-        <div class="login-sub">Setează o parolă pentru utilizatorii cu acces read-only</div>
-        <div class="login-field">
-          <label>Parola ta de admin (verificare)</label>
-          <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="inputAdminCheck" placeholder="Parola de admin">
-          </div>
-        </div>
-        <div class="login-field">
-          <label>Parolă nouă pentru viewer</label>
-          <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="inputNewPass" placeholder="Parolă viewer">
-          </div>
-        </div>
-        <div class="login-field">
-          <label>Confirmă parola viewer</label>
-          <div class="login-field-inner">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="inputConfPass" placeholder="Repetă parola viewer">
-          </div>
-        </div>
-        <button class="login-submit" onclick="doSetup()">Salvează Parola Viewer</button>
-        <div class="login-change-pass"><a href="#" onclick="showView('signin')">&#8592; Înapoi la login</a></div>
       </div>
       <div style="text-align:center;margin-top:24px;font-size:11px;color:var(--text-muted)">&#128274; FleetTMS &mdash; AXM Cargo SRL</div>
     </div>
@@ -327,7 +306,11 @@ tr:hover td{background:#f9fafb;}
   <div class="sidebar-bottom">
     <div class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span style="font-size:11px" id="userLabel">Andrei</span>
+      <span style="font-size:11px" id="userLabel">—</span>
+    </div>
+    <div class="nav-item" onclick="doLogout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>Ieșire</span>
     </div>
   </div>
 </div>
@@ -384,7 +367,7 @@ tr:hover td{background:#f9fafb;}
 <script>
 const SUPABASE_URL='https://ogqyvwzmdfvyouseipik.supabase.co';
 const SUPABASE_KEY='sb_publishable_ufnBdXhXbPCDUIV6eUPG_A_T-teDiXN';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
 let currentPage='dashboard',editingId=null,poiCache=[];
 
 // NOTIFICĂRI SCADENȚE
@@ -501,7 +484,7 @@ function showPage(page){
   document.getElementById('pageTitle').textContent=titles[page]||page;
   const addLabels={curse:'+ Cursă Nouă',cheltuieli:'+ Cheltuială',reparatii:'+ Reparație',documente:'+ Document',flota:'+ Vehicul',poi:'+ Locație POI'};
   const btn=document.getElementById('addBtn');
-  btn.style.display=(page!=='dashboard'&&page!=='costuri'&&page!=='deconturi'&&page!=='rapoarte')?'inline-flex':'none';
+  btn.style.display=(page!=='dashboard'&&page!=='costuri'&&page!=='deconturi'&&page!=='rapoarte'&&isAdmin())?'inline-flex':'none';
   document.getElementById('addBtnLabel').textContent=addLabels[page]||'+ Adaugă';
   renderPage(page);
 }
@@ -756,6 +739,8 @@ async function renderDeconturi(){
 }
 
 async function deschideDecontNou(){
+  if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să modifici date.');return;}
+
   const costuri=loadCosturi();
   const cursRon=costuri.curs_ron||5.0985;
   const cursTry=getCursTRY();
@@ -918,6 +903,8 @@ function stergeRandDecont(i){
 }
 
 async function salveazaDecont(){
+  if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să modifici date.');return;}
+
   const g=id=>document.getElementById(id)?.value||'';
   const costuri=loadCosturi();
   const cursRon=costuri.curs_ron||5.0985;
@@ -981,6 +968,8 @@ async function salveazaDecont(){
 }
 
 async function stergeDecont(id){
+  if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să modifici date.');return;}
+
   if(!confirm('Ștergi acest decont definitiv?'))return;
   await sb.from('deconturi').delete().eq('id',id);
   renderDeconturi();
@@ -1486,6 +1475,8 @@ async function renderCheltuieliCursa(cursaId){
 }
 
 async function saveCheltuialaCursa(cursaId){
+  if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să modifici date.');return;}
+
   const data=document.getElementById('cc_data')?.value;
   const tip=document.getElementById('cc_tip')?.value;
   const suma=parseFloat(document.getElementById('cc_suma')?.value)||0;
@@ -1499,6 +1490,8 @@ async function saveCheltuialaCursa(cursaId){
 }
 
 async function deleteCheltuialaCursa(id,cursaId){
+  if(!isAdmin()){alert('Acces limitat. Nu ai permisiunea să modifici date.');return;}
+
   if(!confirm('Ștergi această cheltuială?'))return;
   await sb.from('cheltuieli').delete().eq('id',id);
   await renderCheltuieliCursa(cursaId);
@@ -1701,55 +1694,51 @@ function formatDate(d){if(!d)return '—';return new Date(d).toLocaleDateString(
 function showError(msg){document.getElementById('content').innerHTML='<div class="alert alert-red">'+msg+'</div>';}
 function filterTable(input,tableId){const val=input.value.toLowerCase();document.querySelectorAll('#'+tableId+' tbody tr').forEach(row=>{row.style.display=row.textContent.toLowerCase().includes(val)?'':'none';});}
 
-// AUTH
-const ADMIN_HASH='-dbxxsj'; // Alomania21
-let currentUser=null; // 'admin' sau 'viewer'
+// AUTH — Supabase Auth + roluri din tabelul "profiluri"
+let currentUser=null; // 'admin' | 'viewer'
+let appStarted=false;
 
-function hp(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h.toString(36);}
-function showView(v){document.getElementById('viewSignin').style.display=v==='signin'?'block':'none';document.getElementById('viewSetup').style.display=v==='setup'?'block':'none';document.getElementById('loginError').style.display='none';}
 function toggleEye(){const i=document.getElementById('inputPass');i.type=i.type==='password'?'text':'password';}
 function showErr(msg){const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';}
-
-function doLogin(){
-  const pass=document.getElementById('inputPass').value;
-  if(!pass){showErr('Introdu parola.');return;}
-  if(hp(pass)===ADMIN_HASH){
-    currentUser='admin';
-    document.getElementById('loginPage').style.display='none';
-    document.getElementById('userLabel').textContent='Admin';
-    return;
-  }
-  // Verifică parola viewer dacă e setată
-  const viewerHash=localStorage.getItem('axmtms_viewer');
-  if(viewerHash&&hp(pass)===viewerHash){
-    currentUser='viewer';
-    document.getElementById('loginPage').style.display='none';
-    document.getElementById('userLabel').textContent='Vizualizare';
-    document.getElementById('addBtn').style.display='none';
-    return;
-  }
-  showErr('Parolă incorectă.');
-  document.getElementById('inputPass').value='';
-}
-
-function doSetup(){
-  const pass=document.getElementById('inputAdminCheck').value;
-  if(hp(pass)!==ADMIN_HASH){showErr('Introdu mai întâi parola de admin pentru a seta parola viewer.');return;}
-  const p1=document.getElementById('inputNewPass').value;
-  const p2=document.getElementById('inputConfPass').value;
-  if(!p1){showErr('Introdu o parolă pentru viewer.');return;}
-  if(p1.length<6){showErr('Parola trebuie să aibă minim 6 caractere.');return;}
-  if(p1!==p2){showErr('Parolele nu coincid.');return;}
-  localStorage.setItem('axmtms_viewer',hp(p1));
-  showErr('Parolă viewer salvată! Acum poți trimite linkul.');
-  document.getElementById('loginError').style.color='var(--green)';
-  document.getElementById('loginError').style.background='var(--green-light)';
-  document.getElementById('loginError').style.borderColor='#86efac';
-  document.getElementById('loginError').style.display='block';
-  showView('signin');
-}
-
 function isAdmin(){return currentUser==='admin';}
+
+async function doLogin(){
+  const email=document.getElementById('inputEmail').value.trim();
+  const pass=document.getElementById('inputPass').value;
+  const btn=document.getElementById('loginBtn');
+  document.getElementById('loginError').style.display='none';
+  if(!email||!pass){showErr('Introdu emailul și parola.');return;}
+  btn.disabled=true;
+  const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;
+  if(error){showErr('Email sau parolă incorectă.');document.getElementById('inputPass').value='';return;}
+  await startApp(data.session);
+}
+
+async function startApp(session){
+  if(appStarted)return;
+  const{data:prof,error}=await sb.from('profiluri').select('rol,nume').eq('id',session.user.id).maybeSingle();
+  if(error||!prof||!['admin','viewer'].includes(prof.rol)){
+    await sb.auth.signOut();
+    showErr('Contul nu are acces la această aplicație.');
+    return;
+  }
+  currentUser=prof.rol;
+  appStarted=true;
+  document.getElementById('userLabel').textContent=(prof.nume||session.user.email)+' · '+(prof.rol==='admin'?'Admin':'Vizualizare');
+  document.getElementById('inputPass').value='';
+  document.getElementById('loginPage').style.display='none';
+  await init();
+}
+
+async function doLogout(){
+  appStarted=false;
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// Dacă sesiunea expiră sau e închisă din altă parte
+sb.auth.onAuthStateChange((ev)=>{if(ev==='SIGNED_OUT'&&appStarted){appStarted=false;location.reload();}});
 
 // RAPOARTE
 async function renderRapoarte(){
@@ -1974,7 +1963,10 @@ async function init(){
   await checkNotificari();
   showPage('dashboard');
 }
-init();
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
+  if(session)await startApp(session);
+})();
 </script>
 </body>
 </html>
